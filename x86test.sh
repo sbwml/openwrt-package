@@ -5,7 +5,7 @@ sed -i "s/'UTC'/'CST-8'\n        set system.@system[-1].zonename='Asia\/Shanghai
 echo '添加软件包'
 git clone https://github.com/sirpdboy/sirpbboy-package ./package/diy
 svn co https://github.com/xiaorouji/openwrt-package/trunk/lienol/luci-app-passwall package/luci-app-passwall
-#svn co https://github.com/xiaorouji/openwrt-package/trunk/package package/lienol
+svn co https://github.com/xiaorouji/openwrt-package/trunk/package package/lienol
 sed -i '$a\chdbits.co\n\www.cnscg.club\n\pt.btschool.club\n\et8.org\n\www.nicept.net\n\pthome.net\n\ourbits.club\n\pt.m-team.cc\n\hdsky.me\n\ccfbits.org' ./package/luci-app-passwall/root/usr/share/passwall/rules/direct_host
 sed -i '$a\docker.com\n\docker.io' ./package/luci-app-passwall/root/usr/share/passwall/rules/proxy_host
 sed -i '/global_rules/a	option auto_update 1\n	option week_update 0\n	option time_update 5' ./package/luci-app-passwall/root/etc/config/passwall
@@ -13,10 +13,10 @@ sed -i '/global_subscribe/a	option auto_update_subscribe 1\noption week_update_s
 
 #rm -rf package/lean/v2ray && svn co https://github.com/xiaorouji/openwrt-package/trunk/package/v2ray			diy/v2ray
 #rm -rf package/lean/v2ray-plugin && svn co https://github.com/xiaorouji/openwrt-package/trunk/package/v2ray-plugin	diy/v2ray-plugin
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/ssocks		./package/lienol/ssocks
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-plus	./package/lienol/trojan-plus
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-go		./package/lienol/trojan-go
-svn co https://github.com/siropboy/luci-app-vssr-plus/trunk/  package/luci-app-vssr-plus
+#svn co https://github.com/xiaorouji/openwrt-package/trunk/package/ssocks		./package/lienol/ssocks
+#svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-plus	./package/lienol/trojan-plus
+#svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-go		./package/lienol/trojan-go
+#svn co https://github.com/siropboy/luci-app-vssr-plus/trunk/  package/luci-app-vssr-plus
 
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/trojan
