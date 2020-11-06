@@ -1,0 +1,2484 @@
+diff -ruN a/src/base/bittorrent/peerinfo.cpp b/src/base/bittorrent/peerinfo.cpp
+--- a/src/base/bittorrent/peerinfo.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/bittorrent/peerinfo.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -177,11 +177,26 @@
+     //    , m_nativeInfo.ip.port()};
+ }
+ 
++int PeerInfo::port() const
++{
++    return m_nativeInfo.ip.port();
++}
++
+ QString PeerInfo::client() const
+ {
+     return QString::fromStdString(m_nativeInfo.client);
+ }
+ 
++QString PeerInfo::pid() const
++{
++    return QString::fromStdString(m_nativeInfo.pid.to_string());
++}
++
++QString PeerInfo::pidtoclient() const
++{
++    return QString::fromStdString(lt::identify_client(m_nativeInfo.pid));
++}
++
+ qreal PeerInfo::progress() const
+ {
+     return m_nativeInfo.progress;
+diff -ruN a/src/base/bittorrent/peerinfo.h b/src/base/bittorrent/peerinfo.h
+--- a/src/base/bittorrent/peerinfo.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/bittorrent/peerinfo.h	2020-04-28 23:39:05.000000000 +0800
+@@ -30,6 +30,7 @@
+ #define BITTORRENT_PEERINFO_H
+ 
+ #include <libtorrent/peer_info.hpp>
++#include <libtorrent/identify_client.hpp>
+ 
+ #include <QCoreApplication>
+ 
+@@ -78,7 +79,10 @@
+         bool isPlaintextEncrypted() const;
+ 
+         PeerAddress address() const;
++        int port() const;
+         QString client() const;
++        QString pid() const;
++        QString pidtoclient() const;
+         qreal progress() const;
+         int payloadUpSpeed() const;
+         int payloadDownSpeed() const;
+diff -ruN a/src/base/bittorrent/session.cpp b/src/base/bittorrent/session.cpp
+--- a/src/base/bittorrent/session.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/bittorrent/session.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -40,6 +40,7 @@
+ #include <iphlpapi.h>
+ #endif
+ 
++#include <QDateTime>
+ #include <libtorrent/alert_types.hpp>
+ #include <libtorrent/bdecode.hpp>
+ #include <libtorrent/bencode.hpp>
+@@ -79,11 +80,14 @@
+ #endif
+ 
+ #include "base/algorithm.h"
++#include "base/bittorrent/peerinfo.h"
++#include "base/bittorrent/peeraddress.h"
+ #include "base/exceptions.h"
+ #include "base/global.h"
+ #include "base/logger.h"
+ #include "base/net/downloadmanager.h"
+ #include "base/net/proxyconfigurationmanager.h"
++#include "base/preferences.h"
+ #include "base/profile.h"
+ #include "base/torrentfileguard.h"
+ #include "base/torrentfilter.h"
+@@ -527,6 +531,10 @@
+     , m_isDisableAutoTMMWhenDefaultSavePathChanged(BITTORRENT_SESSION_KEY("DisableAutoTMMTriggers/DefaultSavePathChanged"), true)
+     , m_isDisableAutoTMMWhenCategorySavePathChanged(BITTORRENT_SESSION_KEY("DisableAutoTMMTriggers/CategorySavePathChanged"), true)
+     , m_isTrackerEnabled(BITTORRENT_KEY("TrackerEnabled"), false)
++    , m_autoBanUnknownPeer(BITTORRENT_SESSION_KEY("AutoBanUnknownPeer"), false)
++    , m_autoBanBTPlayerPeer(BITTORRENT_SESSION_KEY("AutoBanBTPlayerPeer"), false)
++    , m_isAutoUpdateTrackersEnabled(BITTORRENT_SESSION_KEY("AutoUpdateTrackersEnabled"), false)
++    , m_publicTrackers(BITTORRENT_SESSION_KEY("PublicTrackersList"))
+     , m_bannedIPs("State/BannedIPs"
+                   , QStringList()
+                   , [](const QStringList &value)
+@@ -582,6 +590,7 @@
+ 
+     updateSeedingLimitTimer();
+     populateAdditionalTrackers();
++    populatePublicTrackers();
+ 
+     enableTracker(isTrackerEnabled());
+ 
+@@ -612,6 +621,26 @@
+     new PortForwarderImpl {m_nativeSession};
+ 
+     initMetrics();
++
++    // Unban Timer
++    m_unbanTimer = new QTimer(this);
++    m_unbanTimer->setInterval(500);
++    connect(m_unbanTimer, &QTimer::timeout, this, &Session::processUnbanRequest);
++
++    // Ban Timer
++    m_banTimer = new QTimer(this);
++    m_banTimer->setInterval(500);
++    connect(m_banTimer, &QTimer::timeout, this, &Session::autoBanBadClient);
++    m_banTimer->start();
++
++    // Update Tracker
++    m_updateTimer = new QTimer(this);
++    m_updateTimer->setInterval(86400*1000);
++    connect(m_updateTimer, &QTimer::timeout, this, &Session::updatePublicTracker);
++    if (isAutoUpdateTrackersEnabled()) {
++        updatePublicTracker();
++        m_updateTimer->start();
++    }
+ }
+ 
+ bool Session::isDHTEnabled() const
+@@ -1005,6 +1034,54 @@
+     enableTracker(enabled);
+ }
+ 
++bool Session::isAutoUpdateTrackersEnabled() const
++{
++    return m_isAutoUpdateTrackersEnabled;
++}
++
++void Session::setAutoUpdateTrackersEnabled(bool enabled)
++{
++    m_isAutoUpdateTrackersEnabled = enabled;
++
++    if(!enabled) {
++        m_updateTimer->stop();
++    } else {
++        m_updateTimer->start();
++        updatePublicTracker();
++    }
++}
++
++QString Session::publicTrackers() const
++{
++    return m_publicTrackers;
++}
++
++void Session::setPublicTrackers(const QString &trackers)
++{
++    if (trackers != publicTrackers()) {
++        m_publicTrackers = trackers;
++        populatePublicTrackers();
++    }
++}
++
++void Session::updatePublicTracker()
++{
++    Preferences *const pref = Preferences::instance();
++    Net::DownloadManager::instance()->download({pref->customizeTrackersListUrl()}, this, &Session::handleTxtDownloadFinished);
++}
++
++void Session::handleTxtDownloadFinished(const Net::DownloadResult &result)
++{
++    switch (result.status) {
++    case Net::DownloadStatus::Success:
++        setPublicTrackers(QString::fromUtf8(result.data.data()));
++        Logger::instance()->addMessage("tracker列表已更新。", Log::INFO);
++        break;
++    default:
++        Logger::instance()->addMessage("更新tracker列表失败：" + result.errorString, Log::WARNING);
++    }
++}
++
+ qreal Session::globalMaxRatio() const
+ {
+     return m_globalMaxRatio;
+@@ -1114,6 +1191,7 @@
+     // 2. When deferred configure is called
+ 
+     configurePeerClasses();
++    loadOfflineFilter();
+ 
+     if (!m_IPFilteringConfigured) {
+         if (isIPFilteringEnabled())
+@@ -1689,6 +1767,17 @@
+     }
+ }
+ 
++void Session::populatePublicTrackers()
++{
++    m_publicTrackerList.clear();
++    const QString trackers = publicTrackers();
++    for (QStringRef tracker : asConst(trackers.splitRef('\n'))) {
++        tracker = tracker.trimmed();
++        if (!tracker.isEmpty())
++            m_publicTrackerList << tracker.toString();
++    }
++}
++
+ void Session::processShareLimits()
+ {
+     qDebug("Processing share limits...");
+@@ -1828,6 +1917,350 @@
+     }
+ }
+ 
++bool Session::checkAccessFlags(const QString &ip)
++{
++    lt::ip_filter filter = m_nativeSession->get_ip_filter();
++    boost::system::error_code ec;
++    lt::address addr = lt::address::from_string(ip.toLatin1().constData(), ec);
++    Q_ASSERT(!ec);
++    if (ec) return false;
++    return filter.access(addr);
++}
++
++void Session::tempblockIP(const QString &ip)
++{
++    lt::ip_filter filter = m_nativeSession->get_ip_filter();
++    boost::system::error_code ec;
++    lt::address addr = lt::address::from_string(ip.toLatin1().constData(), ec);
++    Q_ASSERT(!ec);
++    if (ec) return;
++    filter.add_rule(addr, addr, lt::ip_filter::blocked);
++    m_nativeSession->set_ip_filter(filter);
++    insertQueue(ip);
++}
++
++void Session::removeBlockedIP(const QString &ip)
++{
++    lt::ip_filter filter = m_nativeSession->get_ip_filter();
++    boost::system::error_code ec;
++    lt::address addr = lt::address::from_string(ip.toLatin1().constData(), ec);
++    Q_ASSERT(!ec);
++    if (ec) return;
++    filter.add_rule(addr, addr, 0);
++    m_nativeSession->set_ip_filter(filter);
++}
++
++// Insert banned IP to Queue
++void Session::insertQueue(QString ip)
++{
++    q_bannedIPs.enqueue(ip);
++    q_unbanTime.enqueue(QDateTime::currentMSecsSinceEpoch() + 60 * 60 * 1000);
++
++    if (!m_unbanTimer->isActive()) {
++        m_unbanTimer->start();
++    }
++}
++
++// Process Unban Queue
++void Session::processUnbanRequest()
++{
++    if (q_bannedIPs.isEmpty() && q_unbanTime.isEmpty()) {
++        m_unbanTimer->stop();
++    }
++    else if (m_isActive) {
++        return;
++    }
++    else {
++        m_isActive = true;
++        int64_t currentTime = QDateTime::currentMSecsSinceEpoch();
++        int64_t nextTime = q_unbanTime.dequeue();
++        int delayTime = int(nextTime - currentTime);
++        QString nextIP = q_bannedIPs.dequeue();
++        if (delayTime < 0) {
++            QTimer::singleShot(0, [=] { BitTorrent::Session::instance()->removeBlockedIP(nextIP); m_isActive = false; });
++        }
++        else {
++            QTimer::singleShot(delayTime, [=] { BitTorrent::Session::instance()->removeBlockedIP(nextIP); m_isActive = false; });
++        }
++    }
++}
++
++// Handle ipfilter.dat
++int findAndNullDelimiter(char *const data, const char delimiter, const int start, const int end, const bool reverse)
++{
++    if (!reverse) {
++        for (int i = start; i <= end; ++i) {
++            if (data[i] == delimiter) {
++                data[i] = '\0';
++                return i;
++            }
++        }
++    }
++    else {
++        for (int i = end; i >= start; --i) {
++            if (data[i] == delimiter) {
++                data[i] = '\0';
++                return i;
++            }
++        }
++    }
++
++    return -1;
++}
++
++int trim(char *const data, const int start, const int end)
++{
++    if (start >= end) return start;
++    int newStart = start;
++
++    for (int i = start; i <= end; ++i) {
++        if (isspace(data[i]) != 0) {
++            data[i] = '\0';
++        }
++        else {
++            newStart = i;
++            break;
++        }
++    }
++
++    for (int i = end; i >= start; --i) {
++        if (isspace(data[i]) != 0)
++            data[i] = '\0';
++        else
++            break;
++    }
++
++    return newStart;
++}
++
++bool parseIPAddress(const char *data, lt::address &address)
++{
++    boost::system::error_code ec;
++    boost::asio::ip::address addr = boost::asio::ip::address::from_string(data, ec);
++
++    if (addr.is_v4())
++        address = lt::address_v4::from_string(data, ec);
++    else
++        address = lt::address_v6::from_string(data, ec);
++
++    return !ec;
++}
++
++int Session::parseOfflineFilterFile(QString ipDat, lt::ip_filter &filter)
++{
++    int ruleCount = 0;
++    QFile file(ipDat);
++    if (!file.exists()) return ruleCount;
++
++    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
++        LogMsg(tr("I/O Error: Could not open IP filter file in read mode."), Log::CRITICAL);
++        return ruleCount;
++    }
++
++    const int BUFFER_SIZE = 2 * 1024 * 1024;
++    const int MAX_LOGGED_ERRORS = 5;
++
++    std::vector<char> buffer(BUFFER_SIZE, 0); // seems a bit faster than QVector
++    qint64 bytesRead = 0;
++    int offset = 0;
++    int start = 0;
++    int endOfLine = -1;
++    int nbLine = 0;
++    int parseErrorCount = 0;
++
++    while (true) {
++        bytesRead = file.read(buffer.data() + offset, BUFFER_SIZE - offset - 1);
++        if (bytesRead < 0)
++            break;
++        const int dataSize = bytesRead + offset;
++        if ((bytesRead == 0) && (dataSize == 0))
++            break;
++
++        for (start = 0; start < dataSize; ++start) {
++            endOfLine = -1;
++            // The file might have ended without the last line having a newline
++            if (!((bytesRead == 0) && (dataSize > 0))) {
++                for (int i = start; i < dataSize; ++i) {
++                    if (buffer[i] == '\n') {
++                        endOfLine = i;
++                        // We need to NULL the newline in case the line has only an IP range.
++                        // In that case the parser won't work for the end IP, because it ends
++                        // with the newline and not with a number.
++                        buffer[i] = '\0';
++                        break;
++                    }
++                }
++            }
++            else {
++                endOfLine = dataSize;
++                buffer[dataSize] = '\0';
++            }
++
++            if (endOfLine == -1) {
++                // read the next chunk from file
++                // but first move(copy) the leftover data to the front of the buffer
++                offset = dataSize - start;
++                memmove(buffer.data(), buffer.data() + start, offset);
++                break;
++            }
++
++            ++nbLine;
++
++            if ((buffer[start] == '#')
++                || ((buffer[start] == '/') && ((start + 1 < dataSize) && (buffer[start + 1] == '/')))) {
++                start = endOfLine;
++                continue;
++            }
++
++            // Each line should follow this format:
++            // 001.009.096.105 - 001.009.096.105 , 000 , Some organization
++            // The 3rd entry is access level and if above 127 the IP range isn't blocked.
++            const int firstComma = findAndNullDelimiter(buffer.data(), ',', start, endOfLine, false);
++            if (firstComma != -1)
++                findAndNullDelimiter(buffer.data(), ',', firstComma + 1, endOfLine, false);
++
++            // Check if there is an access value (apparently not mandatory)
++            if (firstComma != -1) {
++                // There is possibly one
++                const long int nbAccess = strtol(buffer.data() + firstComma + 1, nullptr, 10);
++                // Ignoring this rule because access value is too high
++                if (nbAccess > 127L) {
++                    start = endOfLine;
++                    continue;
++                }
++            }
++
++            // IP Range should be split by a dash
++            const int endOfIPRange = ((firstComma == -1) ? (endOfLine - 1) : (firstComma - 1));
++            const int delimIP = findAndNullDelimiter(buffer.data(), '-', start, endOfIPRange, false);
++            if (delimIP == -1) {
++                ++parseErrorCount;
++                LogMsg(tr("IP filter line %1 is malformed.").arg(nbLine));
++                start = endOfLine;
++                continue;
++            }
++
++            lt::address startAddr;
++            int newStart = trim(buffer.data(), start, delimIP - 1);
++            if (!parseIPAddress(buffer.data() + newStart, startAddr)) {
++                ++parseErrorCount;
++                LogMsg(tr("IP filter line %1 is malformed. Start IP of the range is malformed.").arg(nbLine));
++                start = endOfLine;
++                continue;
++            }
++
++            lt::address endAddr;
++            newStart = trim(buffer.data(), delimIP + 1, endOfIPRange);
++            if (!parseIPAddress(buffer.data() + newStart, endAddr)) {
++                ++parseErrorCount;
++                LogMsg(tr("IP filter line %1 is malformed. End IP of the range is malformed.").arg(nbLine));
++                start = endOfLine;
++                continue;
++            }
++
++            if ((startAddr.is_v4() != endAddr.is_v4())
++                || (startAddr.is_v6() != endAddr.is_v6())) {
++                ++parseErrorCount;
++                LogMsg(tr("IP filter line %1 is malformed. One IP is IPv4 and the other is IPv6!").arg(nbLine));
++                start = endOfLine;
++                continue;
++            }
++
++            start = endOfLine;
++
++            // Now Add to the filter
++            try {
++                filter.add_rule(startAddr, endAddr, lt::ip_filter::blocked);
++                ++ruleCount;
++            }
++            catch (const std::exception &e) {
++                ++parseErrorCount;
++                LogMsg(tr("IP filter exception thrown for line %1. Exception is: %2")
++                       .arg(nbLine).arg(QString::fromLocal8Bit(e.what())));
++            }
++        }
++
++        if (start >= dataSize)
++            offset = 0;
++    }
++
++    if (parseErrorCount > MAX_LOGGED_ERRORS)
++        LogMsg(tr("%1 extra IP filter parsing errors occurred.", "513 extra IP filter parsing errors occurred.")
++               .arg(parseErrorCount - MAX_LOGGED_ERRORS), Log::CRITICAL);
++    return ruleCount;
++}
++
++void Session::loadOfflineFilter() {
++    int Count = 0;
++    lt::ip_filter offlineFilter = m_nativeSession->get_ip_filter();
++
++#if defined(Q_OS_WIN)
++    Count = parseOfflineFilterFile("./ipfilter.dat", offlineFilter);
++#else
++    Count = parseOfflineFilterFile(QDir::home().absoluteFilePath(".config")+"/qBittorrent/ipfilter.dat", offlineFilter);
++#endif
++
++    m_nativeSession->set_ip_filter(offlineFilter);
++    Logger::instance()->addMessage(tr("Successfully parsed the offline downloader IP filter: %1 rules were applied.", "%1 is a number").arg(Count));
++}
++
++void Session::autoBanBadClient()
++{
++    const auto *session = BitTorrent::Session::instance();
++    const BitTorrent::SessionStatus tStatus = session->status();
++    if (tStatus.peersCount > 0) {
++        bool m_AutoBanUnknown = session->isAutoBanUnknownPeerEnabled();
++        bool m_AutoBanPlayer = session->isAutoBanBTPlayerPeerEnabled();
++        for (const BitTorrent::TorrentHandle *torrent : asConst(session->torrents())) {
++            if (!torrent->isPrivate()) {
++                for (const BitTorrent::PeerInfo &peer : asConst(torrent->peers())) {
++                    const BitTorrent::PeerAddress addr = peer.address();
++                    if (addr.ip.isNull()) continue;
++                    QString ip = addr.ip.toString();
++                    int port = peer.port();
++                    QString client = peer.client();
++                    QString ptoc = peer.pidtoclient();
++                    QString pid = peer.pid().left(8);
++                    QString country = peer.country();
++
++                    QRegExp IDFilter("-(XL|SD|XF|QD|BN|DL)(\\d+)-");
++                    QRegExp UAFilter("(\\d+.\\d+.\\d+.\\d+|cacao_torrent)");
++                    if (IDFilter.exactMatch(pid) || UAFilter.exactMatch(client)) {
++                        qDebug("Auto Banning bad Peer %s...", ip.toLocal8Bit().data());
++                        Logger::instance()->addMessage(tr("Auto banning bad Peer '%1'...'%2'...'%3'...'%4'").arg(ip).arg(pid).arg(ptoc).arg(country));
++                        tempblockIP(ip);
++                        continue;
++                    }
++
++                    if(m_AutoBanUnknown) {
++                        if (client.contains("Unknown") && country == "CN") {
++                            qDebug("Auto Banning Unknown Peer %s...", ip.toLocal8Bit().data());
++                            Logger::instance()->addMessage(tr("Auto banning Unknown Peer '%1'...'%2'...'%3'...'%4'").arg(ip).arg(pid).arg(ptoc).arg(country));
++                            tempblockIP(ip);
++                            continue;
++                        }
++                        if (port >= 65000 && country == "CN" && client.contains("Transmission")) {
++                            qDebug("Auto Banning Offline Downloader %s...", ip.toLocal8Bit().data());
++                            Logger::instance()->addMessage(tr("Auto banning Offline Downloader '%1:%2'...'%3'...'%4'...'%5'").arg(ip).arg(port).arg(pid).arg(ptoc).arg(country));
++                            tempblockIP(ip);
++                            continue;
++                        }
++                    }
++                    if(m_AutoBanPlayer) {
++                        QRegExp PlayerFilter("-(UW\\w{4})-");
++                        if (PlayerFilter.exactMatch(pid)) {
++                            qDebug("Auto Banning BitTorrent Media Player Peer %s...", ip.toLocal8Bit().data());
++                            Logger::instance()->addMessage(tr("Auto banning BitTorrent Media Player Peer '%1'...'%2'...'%3'...'%4'").arg(ip).arg(pid).arg(ptoc).arg(country));
++                            tempblockIP(ip);
++                        }
++                    }
++                }
++            }
++        }
++    }
++}
++
++
+ // Delete a torrent from the session, given its hash
+ // and from the disk, if the corresponding deleteOption is chosen
+ bool Session::deleteTorrent(const InfoHash &hash, const DeleteOption deleteOption)
+@@ -3784,6 +4217,30 @@
+     }
+ }
+ 
++bool Session::isAutoBanUnknownPeerEnabled() const
++{
++    return m_autoBanUnknownPeer;
++}
++
++void Session::setAutoBanUnknownPeer(bool value)
++{
++    if (value != isAutoBanUnknownPeerEnabled()) {
++        m_autoBanUnknownPeer = value;
++    }
++}
++
++bool Session::isAutoBanBTPlayerPeerEnabled() const
++{
++    return m_autoBanBTPlayerPeer;
++}
++
++void Session::setAutoBanBTPlayerPeer(bool value)
++{
++    if (value != isAutoBanBTPlayerPeerEnabled()) {
++        m_autoBanBTPlayerPeer = value;
++    }
++}
++
+ bool Session::isListening() const
+ {
+     return m_nativeSession->is_listening();
+@@ -4533,6 +4990,9 @@
+         if (isAddTrackersEnabled() && !torrent->isPrivate())
+             torrent->addTrackers(m_additionalTrackerList);
+ 
++        if (isAutoUpdateTrackersEnabled() && !torrent->isPrivate())
++            torrent->addTrackers(m_publicTrackerList);
++
+         LogMsg(tr("'%1' added to download list.", "'torrent name' was added to download list.")
+             .arg(torrent->name()));
+ 
+diff -ruN a/src/base/bittorrent/session.h b/src/base/bittorrent/session.h
+--- a/src/base/bittorrent/session.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/bittorrent/session.h	2020-04-28 23:39:05.000000000 +0800
+@@ -37,7 +37,9 @@
+ 
+ #include <QHash>
+ #include <QPointer>
++#include <QQueue>
+ #include <QSet>
++#include <QTimer>
+ #include <QVector>
+ 
+ #include "base/settingvalue.h"
+@@ -466,6 +468,36 @@
+         void handleTorrentTrackerError(TorrentHandleImpl *const torrent, const QString &trackerUrl);
+ 
+         bool addMoveTorrentStorageJob(TorrentHandleImpl *torrent, const QString &newPath, MoveStorageMode mode);
++        
++        // Auto ban unknown peer
++        bool isAutoBanUnknownPeerEnabled() const;
++        void setAutoBanUnknownPeer(bool value);
++
++        // Auto ban Bittorrent Media Player Peer
++        bool isAutoBanBTPlayerPeerEnabled() const;
++        void setAutoBanBTPlayerPeer(bool value);
++
++        // Trackers list
++        bool isAutoUpdateTrackersEnabled() const;
++        void setAutoUpdateTrackersEnabled(bool enabled);
++        QString publicTrackers() const;
++        void setPublicTrackers(const QString &trackers);
++        void updatePublicTracker();
++
++        // Enhanced Function
++        bool m_isActive = false;
++        QQueue<QString> q_bannedIPs;
++        QQueue<int64_t> q_unbanTime;
++        CachedSettingValue<QString> m_publicTrackers;
++        QTimer *m_unbanTimer;
++        QTimer *m_banTimer;
++        QTimer *m_updateTimer;
++
++        void autoBanBadClient();
++        bool checkAccessFlags(const QString &ip);
++        void insertQueue(QString ip);
++        void removeBlockedIP(const QString &ip);
++        void tempblockIP(const QString &ip);
+ 
+     signals:
+         void addTorrentFailed(const QString &error);
+@@ -505,6 +537,9 @@
+         void trackerSuccess(BitTorrent::TorrentHandle *const torrent, const QString &tracker);
+         void trackerWarning(BitTorrent::TorrentHandle *const torrent, const QString &tracker);
+ 
++    public slots:
++        void processUnbanRequest();
++
+     private slots:
+         void configureDeferred();
+         void readAlerts();
+@@ -519,6 +554,9 @@
+         void networkOnlineStateChanged(bool online);
+         void networkConfigurationChange(const QNetworkConfiguration &);
+ 
++        // Public Tracker slot
++        void handleTxtDownloadFinished(const Net::DownloadResult &result);
++
+     private:
+         struct MoveStorageJob
+         {
+@@ -608,6 +646,12 @@
+         void saveTorrentsQueue();
+         void removeTorrentsQueue();
+ 
++        // load offline downloader filter
++        int parseOfflineFilterFile(QString ipDat, libtorrent::ip_filter &filter);
++        void loadOfflineFilter();
++
++        void populatePublicTrackers();
++
+         std::vector<lt::alert *> getPendingAlerts(lt::time_duration time = lt::time_duration::zero()) const;
+ 
+         void moveTorrentStorage(const MoveStorageJob &job) const;
+@@ -708,6 +752,9 @@
+ #if defined(Q_OS_WIN)
+         CachedSettingValue<OSMemoryPriority> m_OSMemoryPriority;
+ #endif
++        CachedSettingValue<bool> m_autoBanUnknownPeer;
++        CachedSettingValue<bool> m_autoBanBTPlayerPeer;
++        CachedSettingValue<bool> m_isAutoUpdateTrackersEnabled;
+ 
+         // Order is important. This needs to be declared after its CachedSettingsValue
+         // counterpart, because it uses it for initialization in the constructor
+@@ -717,6 +764,7 @@
+         int m_numResumeData = 0;
+         int m_extraLimit = 0;
+         QVector<BitTorrent::TrackerEntry> m_additionalTrackerList;
++        QVector<BitTorrent::TrackerEntry> m_publicTrackerList;
+         QString m_resumeFolderPath;
+         QFile *m_resumeFolderLock = nullptr;
+ 
+diff -ruN a/src/base/preferences.cpp b/src/base/preferences.cpp
+--- a/src/base/preferences.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/preferences.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -1554,6 +1554,36 @@
+     setValue("SpeedWidget/graph_enable_" + QString::number(id), enable);
+ }
+ 
++bool Preferences::getAutoBanUnknownPeer() const
++{
++    return value("Preferences/Advanced/AutoBanUnknownPeer", false).toBool();
++}
++
++void Preferences::setAutoBanUnknownPeer(const bool checked)
++{
++    setValue("Preferences/Advanced/AutoBanUnknownPeer", checked);
++}
++
++bool Preferences::getAutoBanBTPlayerPeer() const
++{
++    return value("Preferences/Advanced/AutoBanBTPlayerPeer", false).toBool();
++}
++
++void Preferences::setAutoBanBTPlayerPeer(const bool checked)
++{
++    setValue("Preferences/Advanced/AutoBanBTPlayerPeer", checked);
++}
++
++QString Preferences::customizeTrackersListUrl() const
++{
++    return value("Preferences/Bittorrent/CustomizeTrackersListUrl", "https://ngosang.github.io/trackerslist/trackers_all.txt").toString();
++}
++
++void Preferences::setCustomizeTrackersListUrl(const QString &trackersUrl)
++{
++    setValue("Preferences/Bittorrent/CustomizeTrackersListUrl", trackersUrl);
++}
++
+ void Preferences::apply()
+ {
+     if (SettingsStorage::instance()->save())
+diff -ruN a/src/base/preferences.h b/src/base/preferences.h
+--- a/src/base/preferences.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/preferences.h	2020-04-28 23:39:05.000000000 +0800
+@@ -396,6 +396,14 @@
+     bool getSpeedWidgetGraphEnable(int id) const;
+     void setSpeedWidgetGraphEnable(int id, bool enable);
+ 
++    // Enhanced option
++    bool getAutoBanUnknownPeer() const;
++    void setAutoBanUnknownPeer(const bool checked);
++    bool getAutoBanBTPlayerPeer() const;
++    void setAutoBanBTPlayerPeer(const bool checked);
++    QString customizeTrackersListUrl() const;
++    void setCustomizeTrackersListUrl(const QString &trackersUrl);
++
+ public slots:
+     void setStatusFilterState(bool checked);
+     void setCategoryFilterState(bool checked);
+diff -ruN a/src/base/settingsstorage.cpp b/src/base/settingsstorage.cpp
+--- a/src/base/settingsstorage.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/base/settingsstorage.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -125,6 +125,10 @@
+             {"BitTorrent/Session/MaxHalfOpenConnections", "Preferences/Connection/MaxHalfOpenConnec"},
+             {"BitTorrent/Session/uTPEnabled", "Preferences/Bittorrent/uTP"},
+             {"BitTorrent/Session/uTPRateLimited", "Preferences/Bittorrent/uTP_rate_limited"},
++            {"BitTorrent/Session/AutoBanUnknownPeer", "Preferences/Advanced/AutoBanUnknownPeer"},
++            {"BitTorrent/Session/AutoBanBTPlayerPeer", "Preferences/Advanced/AutoBanBTPlayePeer"},
++            {"BitTorrent/Session/AutoUpdateTrackersEnabled", "Preferences/Bittorrent/AutoUpdateTrackers"},
++            {"BitTorrent/Session/PublicTrackersList", "Preferences/Bittorrent/PublicTrackersList"},
+             {"BitTorrent/TrackerEnabled", "Preferences/Advanced/trackerEnabled"},
+             {"Network/Proxy/OnlyForTorrents", "Preferences/Connection/ProxyOnlyForTorrents"},
+             {"Network/Proxy/Type", "Preferences/Connection/ProxyType"},
+diff -ruN a/src/gui/aboutdialog.cpp b/src/gui/aboutdialog.cpp
+--- a/src/gui/aboutdialog.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/aboutdialog.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -56,13 +56,16 @@
+         "<tr><td>%3</td><td><a href=\"https://www.qbittorrent.org\">https://www.qbittorrent.org</a></td></tr>"
+         "<tr><td>%4</td><td><a href=\"http://forum.qbittorrent.org\">http://forum.qbittorrent.org</a></td></tr>"
+         "<tr><td>%5</td><td><a href=\"http://bugs.qbittorrent.org\">http://bugs.qbittorrent.org</a></td></tr>"
++        "<tr><td>%6</td><td><a href=\"https://github.com/c0re100/qBittorrent-Enhanced-Edition\">GitHub Repository</a></td></tr>"
+         "</table>"
+         "</p>")
+         .arg(tr("An advanced BitTorrent client programmed in C++, based on Qt toolkit and libtorrent-rasterbar.")
+             , tr("Copyright %1 2006-2020 The qBittorrent project").arg(QString::fromUtf8(C_COPYRIGHT))
+             , tr("Home Page:")
+             , tr("Forum:")
+-            , tr("Bug Tracker:"));
++            , tr("Bug Tracker:")
++            , tr("Enhanced Edition:")
++            , tr("Maintainer:"));
+     m_ui->labelAbout->setText(aboutText);
+ 
+     m_ui->labelMascot->setPixmap(Utils::Gui::scaledPixmap(":/icons/skin/mascot.png", this));
+diff -ruN a/src/gui/advancedsettings.cpp b/src/gui/advancedsettings.cpp
+--- a/src/gui/advancedsettings.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/advancedsettings.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -72,6 +72,8 @@
+     SAVE_RESUME_DATA_INTERVAL,
+     CONFIRM_RECHECK_TORRENT,
+     RECHECK_COMPLETED,
++    CONFIRM_AUTO_BAN,
++    CONFIRM_AUTO_BAN_BT_Player,
+     // UI related
+     LIST_REFRESH,
+     RESOLVE_HOSTS,
+@@ -244,6 +246,11 @@
+     session->setAnnounceIP(addr.toString());
+     // Stop tracker timeout
+     session->setStopTrackerTimeout(m_spinBoxStopTrackerTimeout.value());
++    // Auto ban Unknown Peer
++    session->setAutoBanUnknownPeer(m_autoBanUnknownPeer.isChecked());
++    // Auto ban Bittorrent Media Player Peer
++    session->setAutoBanBTPlayerPeer(m_autoBanBTPlayerPeer.isChecked());
++
+     // Program notification
+     MainWindow *const mainWindow = static_cast<Application*>(QCoreApplication::instance())->mainWindow();
+     mainWindow->setNotificationsEnabled(m_checkBoxProgramNotifications.isChecked());
+@@ -538,9 +545,12 @@
+     // Announce IP
+     m_lineEditAnnounceIP.setText(session->announceIP());
+     addRow(ANNOUNCE_IP, tr("IP Address to report to trackers (requires restart)"), &m_lineEditAnnounceIP);
+-    // stop tracker timeout
+-    m_spinBoxStopTrackerTimeout.setValue(session->stopTrackerTimeout());
+-    m_spinBoxStopTrackerTimeout.setSuffix(tr(" s", " seconds"));
++    // Auto Ban Unknown Peer from China
++    m_autoBanUnknownPeer.setChecked(session->isAutoBanUnknownPeerEnabled());
++    addRow(CONFIRM_AUTO_BAN, tr("Auto Ban Unknown Peer from China"), &m_autoBanUnknownPeer);
++    // Auto Ban Bittorrent Media Player Peer
++    m_autoBanBTPlayerPeer.setChecked(session->isAutoBanBTPlayerPeerEnabled());
++    addRow(CONFIRM_AUTO_BAN_BT_Player, tr("Auto Ban Bittorrent Media Player Peer"), &m_autoBanBTPlayerPeer);
+     addRow(STOP_TRACKER_TIMEOUT, (tr("Stop tracker timeout") + ' ' + makeLink("https://www.libtorrent.org/reference-Settings.html#stop_tracker_timeout", "(?)"))
+            , &m_spinBoxStopTrackerTimeout);
+ 
+diff -ruN a/src/gui/advancedsettings.h b/src/gui/advancedsettings.h
+--- a/src/gui/advancedsettings.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/advancedsettings.h	2020-04-28 23:39:05.000000000 +0800
+@@ -64,7 +64,7 @@
+     QCheckBox m_checkBoxOsCache, m_checkBoxRecheckCompleted, m_checkBoxResolveCountries, m_checkBoxResolveHosts,
+               m_checkBoxProgramNotifications, m_checkBoxTorrentAddedNotifications, m_checkBoxTrackerFavicon, m_checkBoxTrackerStatus,
+               m_checkBoxConfirmTorrentRecheck, m_checkBoxConfirmRemoveAllTags, m_checkBoxAnnounceAllTrackers, m_checkBoxAnnounceAllTiers,
+-              m_checkBoxMultiConnectionsPerIp, m_checkBoxPieceExtentAffinity, m_checkBoxSuggestMode, m_checkBoxCoalesceRW, m_checkBoxSpeedWidgetEnabled;
++              m_checkBoxMultiConnectionsPerIp, m_checkBoxPieceExtentAffinity, m_checkBoxSuggestMode, m_checkBoxCoalesceRW, m_checkBoxSpeedWidgetEnabled, m_autoBanUnknownPeer, m_autoBanBTPlayerPeer;
+     QComboBox m_comboBoxInterface, m_comboBoxInterfaceAddress, m_comboBoxUtpMixedMode, m_comboBoxChokingAlgorithm, m_comboBoxSeedChokingAlgorithm;
+     QLineEdit m_lineEditAnnounceIP;
+ 
+diff -ruN a/src/gui/fspathedit.cpp b/src/gui/fspathedit.cpp
+--- a/src/gui/fspathedit.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/fspathedit.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -29,6 +29,7 @@
+ #include "fspathedit.h"
+ 
+ #include <memory>
++#include <stdexcept>
+ 
+ #include <QAction>
+ #include <QApplication>
+diff -ruN a/src/gui/mainwindow.cpp b/src/gui/mainwindow.cpp
+--- a/src/gui/mainwindow.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/mainwindow.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -1819,13 +1819,13 @@
+ }
+ 
+ #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+-void MainWindow::handleUpdateCheckFinished(bool updateAvailable, QString newVersion, bool invokedByUser)
++void MainWindow::handleUpdateCheckFinished(bool updateAvailable, QString newVersion, QString newContent, QString nextUpdate, bool invokedByUser)
+ {
+     QMessageBox::StandardButton answer = QMessageBox::Yes;
+     if (updateAvailable) {
+         answer = QMessageBox::question(this, tr("qBittorrent Update Available")
+             , tr("A new version is available.") + "<br/>"
+-                + tr("Do you want to download %1?").arg(newVersion) + "<br/><br/>"
++                + tr("Do you want to download %1?\n%2").arg(newVersion).arg(newContent) + "<br/><br/>"
+                 + QString::fromLatin1("<a href=\"https://www.qbittorrent.org/news.php\">%1</a>").arg(tr("Open changelog..."))
+             , QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+         if (answer == QMessageBox::Yes) {
+@@ -1836,7 +1836,7 @@
+     }
+     else if (invokedByUser) {
+         QMessageBox::information(this, tr("Already Using the Latest qBittorrent Version"),
+-                                 tr("No updates available.\nYou are already using the latest version."));
++                                 tr("No updates available.\nYou are already using the latest version.\n%1").arg(nextUpdate));
+     }
+     sender()->deleteLater();
+     m_ui->actionCheckForUpdates->setEnabled(true);
+diff -ruN a/src/gui/mainwindow.h b/src/gui/mainwindow.h
+--- a/src/gui/mainwindow.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/mainwindow.h	2020-04-28 23:39:05.000000000 +0800
+@@ -136,7 +136,7 @@
+     void askRecursiveTorrentDownloadConfirmation(BitTorrent::TorrentHandle *const torrent);
+     void optionsSaved();
+ #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+-    void handleUpdateCheckFinished(bool updateAvailable, QString newVersion, bool invokedByUser);
++    void handleUpdateCheckFinished(bool updateAvailable, QString newVersion, QString newContent, QString nextUpdate, bool invokedByUser);
+ #endif
+     void toggleAlternativeSpeeds();
+ 
+diff -ruN a/src/gui/optionsdialog.cpp b/src/gui/optionsdialog.cpp
+--- a/src/gui/optionsdialog.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/optionsdialog.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -45,6 +45,7 @@
+ #include "base/bittorrent/session.h"
+ #include "base/global.h"
+ #include "base/net/dnsupdater.h"
++#include "base/net/downloadmanager.h"
+ #include "base/net/portforwarder.h"
+ #include "base/net/proxyconfigurationmanager.h"
+ #include "base/preferences.h"
+@@ -457,6 +458,9 @@
+     connect(m_ui->checkEnableAddTrackers, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
+     connect(m_ui->textTrackers, &QPlainTextEdit::textChanged, this, &ThisType::enableApplyButton);
+ 
++    connect(m_ui->checkAutoUpdateTrackers, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
++    connect(m_ui->textCustomizeTrackersListUrl, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
++
+     const QString slowTorrentsExplanation = QLatin1String("<html><body><p>")
+             + tr("A torrent will be considered slow if its download and upload rates stay below these values for \"Torrent inactivity timer\" seconds")
+             + QLatin1String("</p></body></html>");
+@@ -813,6 +817,8 @@
+         EnableSuperSeeding
+     };
+     session->setMaxRatioAction(actIndex.value(m_ui->comboRatioLimitAct->currentIndex()));
++    session->setAutoUpdateTrackersEnabled(m_ui->checkAutoUpdateTrackers->isChecked());
++    pref->setCustomizeTrackersListUrl(m_ui->textCustomizeTrackersListUrl->text());
+     // End Bittorrent preferences
+ 
+     // Misc preferences
+@@ -1213,6 +1219,9 @@
+         {EnableSuperSeeding, 3}
+     };
+     m_ui->comboRatioLimitAct->setCurrentIndex(actIndex.value(session->maxRatioAction()));
++    m_ui->checkAutoUpdateTrackers->setChecked(session->isAutoUpdateTrackersEnabled());
++    m_ui->textCustomizeTrackersListUrl->setText(pref->customizeTrackersListUrl());
++    m_ui->textPublicTrackers->setPlainText(session->publicTrackers());
+     // End Bittorrent preferences
+ 
+     // Web UI preferences
+@@ -1816,3 +1825,23 @@
+     connect(dialog, &QDialog::accepted, this, &OptionsDialog::enableApplyButton);
+     dialog->open();
+ }
++
++void OptionsDialog::on_fetchButton_clicked()
++{
++    Net::DownloadHandler *m_fetchHandler = Net::DownloadManager::instance()->download(Preferences::instance()->customizeTrackersListUrl());
++    connect(m_fetchHandler, &Net::DownloadHandler::finished, this, &OptionsDialog::handlePublicTrackersListChanged);
++}
++
++void OptionsDialog::handlePublicTrackersListChanged(const Net::DownloadResult &result)
++{
++    switch (result.status) {
++    case Net::DownloadStatus::Success:
++        BitTorrent::Session::instance()->setPublicTrackers(QString::fromUtf8(result.data.data()));
++        m_ui->textPublicTrackers->setPlainText(QString::fromUtf8(result.data.data()));
++        m_ui->fetchButton->setEnabled(false);
++        m_ui->fetchButton->setText("Fetched!");
++        break;
++    default:
++        m_ui->textPublicTrackers->setPlainText("Refetch failed. Reason: " + result.errorString);
++    }
++}
+diff -ruN a/src/gui/optionsdialog.h b/src/gui/optionsdialog.h
+--- a/src/gui/optionsdialog.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/optionsdialog.h	2020-04-28 23:39:05.000000000 +0800
+@@ -30,6 +30,7 @@
+ #define OPTIONSDIALOG_H
+ 
+ #include <QDialog>
++#include "base/net/downloadmanager.h"
+ 
+ class QAbstractButton;
+ class QCloseEvent;
+@@ -111,6 +112,8 @@
+     void setLocale(const QString &localeStr);
+     void webUIHttpsCertChanged(const QString &path, ShowError showError);
+     void webUIHttpsKeyChanged(const QString &path, ShowError showError);
++    void on_fetchButton_clicked();
++    void handlePublicTrackersListChanged(const Net::DownloadResult &result);
+ 
+ private:
+     // Methods
+diff -ruN a/src/gui/optionsdialog.ui b/src/gui/optionsdialog.ui
+--- a/src/gui/optionsdialog.ui	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/optionsdialog.ui	2020-04-28 23:39:05.000000000 +0800
+@@ -122,8 +122,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>501</width>
+-             <height>893</height>
++             <width>470</width>
++             <height>909</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+@@ -735,8 +735,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>591</width>
+-             <height>1138</height>
++             <width>470</width>
++             <height>1066</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+@@ -1346,8 +1346,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>501</width>
+-             <height>745</height>
++             <width>470</width>
++             <height>624</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_20">
+@@ -1846,8 +1846,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>516</width>
+-             <height>525</height>
++             <width>487</width>
++             <height>542</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+@@ -2182,9 +2182,9 @@
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+-             <y>0</y>
+-             <width>513</width>
+-             <height>679</height>
++             <y>-298</y>
++             <width>470</width>
++             <height>840</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+@@ -2640,6 +2640,72 @@
+              </widget>
+             </item>
+             <item>
++             <widget class="QGroupBox" name="checkAutoUpdateTrackers">
++              <property name="title">
++               <string>Automatically update public trackers list:</string>
++              </property>
++              <property name="checkable">
++               <bool>true</bool>
++              </property>
++              <property name="checked">
++               <bool>false</bool>
++              </property>
++              <layout class="QGridLayout" name="gridLayout_999">
++               <property name="leftMargin">
++                <number>9</number>
++               </property>
++               <property name="topMargin">
++                <number>9</number>
++               </property>
++               <property name="rightMargin">
++                <number>9</number>
++               </property>
++               <property name="bottomMargin">
++                <number>9</number>
++               </property>
++               <item row="0" column="0">
++                <widget class="QLineEdit" name="textCustomizeTrackersListUrl">
++                 <property name="enabled">
++                  <bool>true</bool>
++                 </property>
++                 <property name="text">
++                  <string>https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt</string>
++                 </property>
++                 <property name="readOnly">
++                  <bool>false</bool>
++                 </property>
++                 <property name="cursorMoveStyle">
++                  <enum>Qt::LogicalMoveStyle</enum>
++                 </property>
++                </widget>
++               </item>
++               <item row="0" column="1">
++                <widget class="QPushButton" name="fetchButton">
++                 <property name="text">
++                  <string>Refetch</string>
++                 </property>
++                </widget>
++               </item>
++               <item row="1" column="0" colspan="2">
++                <widget class="QPlainTextEdit" name="textPublicTrackers">
++                 <property name="enabled">
++                  <bool>true</bool>
++                 </property>
++                 <property name="minimumSize">
++                  <size>
++                   <width>0</width>
++                   <height>153</height>
++                  </size>
++                 </property>
++                 <property name="readOnly">
++                  <bool>true</bool>
++                 </property>
++                </widget>
++               </item>
++              </layout>
++             </widget>
++            </item>
++            <item>
+              <spacer name="verticalSpacer_8">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+@@ -2682,8 +2748,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>516</width>
+-             <height>525</height>
++             <width>487</width>
++             <height>542</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_27">
+@@ -2852,8 +2918,8 @@
+             <rect>
+              <x>0</x>
+              <y>0</y>
+-             <width>501</width>
+-             <height>636</height>
++             <width>470</width>
++             <height>903</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_23">
+diff -ruN a/src/gui/programupdater.cpp b/src/gui/programupdater.cpp
+--- a/src/gui/programupdater.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/programupdater.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -47,7 +47,7 @@
+ 
+ namespace
+ {
+-    const QString RSS_URL {QStringLiteral("https://www.fosshub.com/feed/5b8793a7f9ee5a5c3e97a3b2.xml")};
++    const QString RSS_URL {QStringLiteral("https://husky.moe/feedqBittorent.xml")};
+ 
+     QString getStringValue(QXmlStreamReader &xml);
+ }
+@@ -72,7 +72,7 @@
+ 
+     if (result.status != Net::DownloadStatus::Success) {
+         qDebug() << "Downloading the new qBittorrent updates RSS failed:" << result.errorString;
+-        emit updateCheckFinished(false, QString(), m_invokedByUser);
++        emit updateCheckFinished(false, QString(), QString(), QString(), m_invokedByUser);
+         return;
+     }
+ 
+@@ -87,6 +87,8 @@
+ #endif
+ 
+     QString version;
++    QString content;
++    QString nUpdate;
+     QXmlStreamReader xml(result.data);
+     bool inItem = false;
+     QString updateLink;
+@@ -104,6 +106,10 @@
+                 type = getStringValue(xml);
+             else if (inItem && xml.name() == "version")
+                 version = getStringValue(xml);
++            else if (inItem && xml.name() == "content")
++                content = getStringValue(xml);
++            else if (inItem && xml.name() == "update")
++                nUpdate = getStringValue(xml);
+         }
+         else if (xml.isEndElement()) {
+             if (inItem && xml.name() == "item") {
+@@ -121,11 +127,13 @@
+                 updateLink.clear();
+                 type.clear();
+                 version.clear();
++                content.clear();
++                nUpdate.clear();
+             }
+         }
+     }
+ 
+-    emit updateCheckFinished(!m_updateUrl.isEmpty(), version, m_invokedByUser);
++    emit updateCheckFinished(!m_updateUrl.isEmpty(), version, content, nUpdate, m_invokedByUser);
+ }
+ 
+ void ProgramUpdater::updateProgram()
+diff -ruN a/src/gui/programupdater.h b/src/gui/programupdater.h
+--- a/src/gui/programupdater.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/programupdater.h	2020-04-28 23:39:05.000000000 +0800
+@@ -48,7 +48,7 @@
+     void updateProgram();
+ 
+ signals:
+-    void updateCheckFinished(bool updateAvailable, QString version, bool invokedByUser);
++    void updateCheckFinished(bool updateAvailable, QString content, QString nextUpdate, QString version, bool invokedByUser);
+ 
+ private slots:
+     void rssDownloadFinished(const Net::DownloadResult &result);
+diff -ruN a/src/gui/properties/peerlistdelegate.h b/src/gui/properties/peerlistdelegate.h
+--- a/src/gui/properties/peerlistdelegate.h	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/properties/peerlistdelegate.h	2020-04-28 23:39:05.000000000 +0800
+@@ -45,6 +45,7 @@
+         CONNECTION,
+         FLAGS,
+         CLIENT,
++        PEERID,
+         PROGRESS,
+         DOWN_SPEED,
+         UP_SPEED,
+diff -ruN a/src/gui/properties/peerlistwidget.cpp b/src/gui/properties/peerlistwidget.cpp
+--- a/src/gui/properties/peerlistwidget.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/gui/properties/peerlistwidget.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -95,6 +95,7 @@
+     m_listModel->setHeaderData(PeerListDelegate::FLAGS, Qt::Horizontal, tr("Flags"));
+     m_listModel->setHeaderData(PeerListDelegate::CONNECTION, Qt::Horizontal, tr("Connection"));
+     m_listModel->setHeaderData(PeerListDelegate::CLIENT, Qt::Horizontal, tr("Client", "i.e.: Client application"));
++    m_listModel->setHeaderData(PeerListDelegate::PEERID, Qt::Horizontal, tr("Peer ID", "i.e.: Client Peer ID"));
+     m_listModel->setHeaderData(PeerListDelegate::PROGRESS, Qt::Horizontal, tr("Progress", "i.e: % downloaded"));
+     m_listModel->setHeaderData(PeerListDelegate::DOWN_SPEED, Qt::Horizontal, tr("Down Speed", "i.e: Download speed"));
+     m_listModel->setHeaderData(PeerListDelegate::UP_SPEED, Qt::Horizontal, tr("Up Speed", "i.e: Upload speed"));
+@@ -299,8 +300,13 @@
+     for (const QModelIndex &index : selectedIndexes) {
+         const int row = m_proxyModel->mapToSource(index).row();
+         const QString ip = m_listModel->item(row, PeerListDelegate::IP_HIDDEN)->text();
++        QString client = m_listModel->data(m_listModel->index(row, PeerListDelegate::CLIENT)).toString();
++        QString peerid = m_listModel->data(m_listModel->index(row, PeerListDelegate::PEERID)).toString();
++        QHostAddress host;
++        host.setAddress(ip);
++        const QString countryName = Net::GeoIPManager::CountryName(Net::GeoIPManager::instance()->lookup(host));
+         BitTorrent::Session::instance()->banIP(ip);
+-        LogMsg(tr("Peer \"%1\" is manually banned").arg(ip));
++        LogMsg(tr("Peer \"%1\" is manually banned. PeerID: '%2' Client: '%3' Country Name: '%4'").arg(ip).arg(peerid).arg(client).arg(countryName));
+     }
+     // Refresh list
+     loadPeers(m_properties->getCurrentTorrent());
+@@ -402,6 +408,7 @@
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::FLAGS), peer.flags());
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::FLAGS), peer.flagsDescription(), Qt::ToolTipRole);
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::CLIENT), peer.client().toHtmlEscaped());
++    m_listModel->setData(m_listModel->index(row, PeerListDelegate::PEERID), peer.pid().left(8).toHtmlEscaped());
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::PROGRESS), peer.progress());
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::DOWN_SPEED), peer.payloadDownSpeed());
+     m_listModel->setData(m_listModel->index(row, PeerListDelegate::UP_SPEED), peer.payloadUpSpeed());
+diff -ruN a/src/lang/lang.qrc b/src/lang/lang.qrc
+--- a/src/lang/lang.qrc	2020-04-25 05:29:44.000000000 +0800
++++ b/src/lang/lang.qrc	2020-04-28 23:39:05.000000000 +0800
+@@ -1,54 +1,6 @@
+ <RCC>
+     <qresource prefix="/lang">
+-        <file>qbittorrent_ar.qm</file>
+-        <file>qbittorrent_be.qm</file>
+-        <file>qbittorrent_bg.qm</file>
+-        <file>qbittorrent_ca.qm</file>
+-        <file>qbittorrent_cs.qm</file>
+-        <file>qbittorrent_da.qm</file>
+-        <file>qbittorrent_de.qm</file>
+-        <file>qbittorrent_el.qm</file>
+-        <file>qbittorrent_en.qm</file>
+-        <file>qbittorrent_en_AU.qm</file>
+-        <file>qbittorrent_en_GB.qm</file>
+-        <file>qbittorrent_eo.qm</file>
+-        <file>qbittorrent_es.qm</file>
+-        <file>qbittorrent_eu.qm</file>
+-        <file>qbittorrent_fi.qm</file>
+-        <file>qbittorrent_fr.qm</file>
+-        <file>qbittorrent_gl.qm</file>
+-        <file>qbittorrent_he.qm</file>
+-        <file>qbittorrent_hi_IN.qm</file>
+-        <file>qbittorrent_hr.qm</file>
+-        <file>qbittorrent_hu.qm</file>
+-        <file>qbittorrent_hy.qm</file>
+-        <file>qbittorrent_id.qm</file>
+-        <file>qbittorrent_is.qm</file>
+-        <file>qbittorrent_it.qm</file>
+-        <file>qbittorrent_ja.qm</file>
+-        <file>qbittorrent_ka.qm</file>
+-        <file>qbittorrent_ko.qm</file>
+-        <file>qbittorrent_lt.qm</file>
+-        <file>qbittorrent_lv_LV.qm</file>
+-        <file>qbittorrent_ms_MY.qm</file>
+-        <file>qbittorrent_nb.qm</file>
+-        <file>qbittorrent_nl.qm</file>
+-        <file>qbittorrent_oc.qm</file>
+-        <file>qbittorrent_pl.qm</file>
+-        <file>qbittorrent_pt_BR.qm</file>
+-        <file>qbittorrent_pt_PT.qm</file>
+-        <file>qbittorrent_ro.qm</file>
+-        <file>qbittorrent_ru.qm</file>
+-        <file>qbittorrent_sk.qm</file>
+-        <file>qbittorrent_sl.qm</file>
+-        <file>qbittorrent_sr.qm</file>
+-        <file>qbittorrent_sv.qm</file>
+-        <file>qbittorrent_tr.qm</file>
+-        <file>qbittorrent_uk.qm</file>
+-        <file>qbittorrent_uz@Latn.qm</file>
+-        <file>qbittorrent_vi.qm</file>
+         <file>qbittorrent_zh.qm</file>
+-        <file>qbittorrent_zh_HK.qm</file>
+-        <file>qbittorrent_zh_TW.qm</file>
++        <file>qbittorrent_en.qm</file>
+     </qresource>
+ </RCC>
+diff -ruN a/src/lang/qbittorrent_zh.ts b/src/lang/qbittorrent_zh.ts
+--- a/src/lang/qbittorrent_zh.ts	2020-04-25 05:29:44.000000000 +0800
++++ b/src/lang/qbittorrent_zh.ts	2020-04-28 23:39:05.000000000 +0800
+@@ -6,7 +6,7 @@
+     <message>
+         <location filename="../gui/aboutdialog.ui" line="15"/>
+         <source>About qBittorrent</source>
+-        <translation>关于 qBittorrent</translation>
++        <translation>关于qBittorrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/aboutdialog.ui" line="52"/>
+@@ -79,12 +79,12 @@
+     <message>
+         <location filename="../gui/aboutdialog.ui" line="325"/>
+         <source>qBittorrent was built with the following libraries:</source>
+-        <translation>qBittorrent 的构建使用了以下库：</translation>
++        <translation>qBittorrent的构建使用了以下库：</translation>
+     </message>
+     <message>
+         <location filename="../gui/aboutdialog.cpp" line="61"/>
+         <source>An advanced BitTorrent client programmed in C++, based on Qt toolkit and libtorrent-rasterbar.</source>
+-        <translation>一个基于 Qt 工具箱和 libtorrent-rasterbar 并用 C++ 编写的高级 BitTorrent 客户端。</translation>
++        <translation>一个基于Qt工具箱和libtorrent-rasterbar并用C++编写的高级BitTorrent客户端。</translation>
+     </message>
+     <message>
+         <location filename="../gui/aboutdialog.cpp" line="62"/>
+@@ -127,7 +127,7 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="99"/>
+         <source>Torrent settings</source>
+-        <translation>Torrent 设置</translation>
++        <translation>Torrent设置</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="132"/>
+@@ -142,12 +142,12 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="179"/>
+         <source>Start torrent</source>
+-        <translation>开始 Torrent</translation>
++        <translation>开始Torrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="210"/>
+         <source>Torrent information</source>
+-        <translation>Torrent 信息</translation>
++        <translation>Torrent信息</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="158"/>
+@@ -177,12 +177,12 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="41"/>
+         <source>Torrent Management Mode:</source>
+-        <translation>Torrent 管理模式：</translation>
++        <translation>Torrent管理模式：</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="48"/>
+         <source>Automatic mode means that various torrent properties(eg save path) will be decided by the associated category</source>
+-        <translation>在自动模式下，Torrent 的配置信息 (例如保存路径) 将由相关的分类决定</translation>
++        <translation>在自动模式下，Torrent的配置信息(例如保存路径)将由相关的分类决定</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="52"/>
+@@ -207,7 +207,7 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="144"/>
+         <source>Do not delete .torrent file</source>
+-        <translation>不删除 .torrent 文件</translation>
++        <translation>不删除.torrent文件</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="172"/>
+@@ -227,7 +227,7 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="397"/>
+         <source>Save as .torrent file...</source>
+-        <translation>保存为 .torrent 文件...</translation>
++        <translation>保存为.torrent文件...</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.ui" line="415"/>
+@@ -253,13 +253,13 @@
+         <location filename="../gui/addnewtorrentdialog.cpp" line="464"/>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="600"/>
+         <source>I/O Error</source>
+-        <translation>I/O 错误</translation>
++        <translation>I/O错误</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="265"/>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="676"/>
+         <source>Invalid torrent</source>
+-        <translation>无效 Torrent</translation>
++        <translation>无效Torrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="627"/>
+@@ -289,7 +289,7 @@
+ Error: %2</source>
+         <comment>Don&apos;t remove the &apos;
+ &apos; characters. They insert a newline.</comment>
+-        <translation>加载 Torrent 失败：%1。
++        <translation>加载Torrent失败：%1。
+ 错误：%2</translation>
+     </message>
+     <message>
+@@ -320,7 +320,7 @@
+         <location filename="../gui/addnewtorrentdialog.cpp" line="325"/>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="329"/>
+         <source>Torrent is already present</source>
+-        <translation>Torrent 已存在</translation>
++        <translation>Torrent已存在</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="286"/>
+@@ -336,7 +336,7 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="295"/>
+         <source>Torrent is already queued for processing.</source>
+-        <translation>Torrent 已在队列中等待处理。</translation>
++        <translation>Torrent已在队列中等待处理。</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="325"/>
+@@ -362,7 +362,7 @@
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="452"/>
+         <source>Save as torrent file</source>
+-        <translation>保存为 torrent 文件</translation>
++        <translation>保存为torrent文件</translation>
+     </message>
+     <message>
+         <location filename="../gui/addnewtorrentdialog.cpp" line="696"/>
+@@ -398,7 +398,7 @@
+         <location filename="../gui/addnewtorrentdialog.cpp" line="676"/>
+         <source>Failed to load from URL: %1.
+ Error: %2</source>
+-        <translation>加载 URL 失败：%1。
++        <translation>加载URL失败：%1。
+ 错误：%2</translation>
+     </message>
+     <message>
+@@ -428,7 +428,7 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="503"/>
+         <source>Recheck torrents on completion</source>
+-        <translation>完成后重新校验 Torrent</translation>
++        <translation>完成后重新校验Torrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="509"/>
+@@ -477,7 +477,7 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="340"/>
+         <source>qBittorrent Section</source>
+-        <translation>qBittorrent 相关</translation>
++        <translation>qBittorrent相关</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="337"/>
+@@ -488,17 +488,17 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="299"/>
+         <source>All IPv4 addresses</source>
+-        <translation>所有 IPv4 地址</translation>
++        <translation>所有IPv4地址</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="300"/>
+         <source>All IPv6 addresses</source>
+-        <translation>所有 IPv6 地址</translation>
++        <translation>所有IPv6地址</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="348"/>
+         <source>libtorrent Section</source>
+-        <translation>libtorrent 相关</translation>
++        <translation>libtorrent相关</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="352"/>
+@@ -642,7 +642,7 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="537"/>
+         <source>Optional IP Address to bind to (requires restart)</source>
+-        <translation>可选 IP 地址 (需要重启)</translation>
++        <translation>可选IP地址(需要重启)</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="544"/>
+@@ -657,12 +657,12 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="553"/>
+         <source>Display notifications for added torrents</source>
+-        <translation>显示已添加 Torrent 的通知</translation>
++        <translation>显示已添加Torrent的通知</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="556"/>
+         <source>Download tracker&apos;s favicon</source>
+-        <translation>下载 Tracker 的网站图标</translation>
++        <translation>下载Tracker的网站图标</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="560"/>
+@@ -712,7 +712,7 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="585"/>
+         <source>Confirm torrent recheck</source>
+-        <translation>重新校验 Torrent 时提示确认</translation>
++        <translation>重新校验种子时提示确认</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="589"/>
+@@ -755,17 +755,17 @@
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="540"/>
+         <source>IP Address to report to trackers (requires restart)</source>
+-        <translation>向 Tracker 汇报的 IP 地址 (需要重启)</translation>
++        <translation>向Tracker汇报的IP地址 (需要重启)</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="566"/>
+         <source>Enable embedded tracker</source>
+-        <translation>启用内置 Tracker</translation>
++        <translation>启用内置Tracker</translation>
+     </message>
+     <message>
+         <location filename="../gui/advancedsettings.cpp" line="571"/>
+         <source>Embedded tracker port</source>
+-        <translation>内置 Tracker 端口</translation>
++        <translation>内置Tracker端口</translation>
+     </message>
+ </context>
+ <context>
+@@ -799,12 +799,12 @@
+     <message>
+         <location filename="../app/application.cpp" line="397"/>
+         <source>Torrent name: %1</source>
+-        <translation>Torrent 名称：%1</translation>
++        <translation>Torrent名称：%1</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="398"/>
+         <source>Torrent size: %1</source>
+-        <translation>Torrent 大小：%1</translation>
++        <translation>Torrent大小：%1</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="399"/>
+@@ -815,12 +815,12 @@
+         <location filename="../app/application.cpp" line="400"/>
+         <source>The torrent was downloaded in %1.</source>
+         <comment>The torrent was downloaded in 1 hour and 20 seconds</comment>
+-        <translation>该 Torrent 下载用时为 %1。</translation>
++        <translation>该Torrent下载用时为 %1。</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="402"/>
+         <source>Thank you for using qBittorrent.</source>
+-        <translation>感谢您使用 qBittorrent。</translation>
++        <translation>感谢您使用qBittorrent。</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="409"/>
+@@ -845,17 +845,17 @@
+     <message>
+         <location filename="../app/application.cpp" line="597"/>
+         <source>To control qBittorrent, access the Web UI at %1</source>
+-        <translation>欲通过 Web UI 控制 qBittorrent，请访问 %1</translation>
++        <translation>欲通过WebUI控制qBittorrent，请访问 %1</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="602"/>
+         <source>The Web UI administrator username is: %1</source>
+-        <translation>Web UI 管理员的用户名是：%1</translation>
++        <translation>WebUI管理员的用户名是：%1</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="603"/>
+         <source>The Web UI administrator password is still the default one: %1</source>
+-        <translation>Web UI 管理员的密码仍为默认密码：%1</translation>
++        <translation>WebUI管理员的密码仍为默认密码：%1</translation>
+     </message>
+     <message>
+         <location filename="../app/application.cpp" line="604"/>
+@@ -865,7 +865,7 @@
+     <message>
+         <location filename="../app/application.cpp" line="731"/>
+         <source>Saving torrent progress...</source>
+-        <translation>正在保存 Torrent 进度...</translation>
++        <translation>正在保存Torrent进度...</translation>
+     </message>
+ </context>
+ <context>
+@@ -881,22 +881,22 @@
+     <message>
+         <location filename="../webui/api/authcontroller.cpp" line="51"/>
+         <source>WebAPI login failure. Reason: IP has been banned, IP: %1, username: %2</source>
+-        <translation>WebAPI 登录失败。原因: IP 被封禁，IP：%1，用户名：%2</translation>
++        <translation>WebAPI登录失败。原因:IP被封禁，IP：%1，用户名：%2</translation>
+     </message>
+     <message>
+         <location filename="../webui/api/authcontroller.cpp" line="55"/>
+         <source>Your IP address has been banned after too many failed authentication attempts.</source>
+-        <translation>身份认证失败次数过多，您的 IP 地址已被封禁。</translation>
++        <translation>身份认证失败次数过多，您的IP地址已被封禁。</translation>
+     </message>
+     <message>
+         <location filename="../webui/api/authcontroller.cpp" line="70"/>
+         <source>WebAPI login success. IP: %1</source>
+-        <translation>WebAPI 登录成功。IP：%1</translation>
++        <translation>WebAPI登录成功。IP：%1</translation>
+     </message>
+     <message>
+         <location filename="../webui/api/authcontroller.cpp" line="76"/>
+         <source>WebAPI login failure. Reason: invalid credentials, attempt count: %1, IP: %2, username: %3</source>
+-        <translation>WebAPI 登录失败。原因：凭证无效，尝试次数：%1，IP：%2，用户名：%3</translation>
++        <translation>WebAPI 登录失败。原因凭证无效，尝试次数：%1，IP：%2，用户名：%3</translation>
+     </message>
+ </context>
+ <context>
+@@ -909,12 +909,12 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.ui" line="14"/>
+         <source>RSS Downloader</source>
+-        <translation>RSS 下载器</translation>
++        <translation>RSS下载器</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.ui" line="28"/>
+         <source>Auto downloading of RSS torrents is disabled now! You can enable it in application settings.</source>
+-        <translation>自动下载 RSS Torrent 功能已被禁用。您可以在程序的选项中开启。</translation>
++        <translation>自动下载RSS Torrent功能已被禁用。您可以在程序的选项中开启。</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.ui" line="59"/>
+@@ -1020,7 +1020,7 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.ui" line="397"/>
+         <source>Matching RSS Articles</source>
+-        <translation>匹配 RSS 文章</translation>
++        <translation>匹配RSS文章</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.ui" line="425"/>
+@@ -1046,7 +1046,7 @@
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="89"/>
+         <source> will match 2, 5, 8 through 15, 30 and onward episodes of season one</source>
+         <comment>example X will match</comment>
+-        <translation> 可匹配第 1 季的第 2 集、第 5 集、第 8 至 15 集、第 30 集及之后的集数</translation>
++        <translation> 可匹配第1季的第2集、第5集、第8至15集、第30集及之后的集数</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="90"/>
+@@ -1066,7 +1066,7 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="93"/>
+         <source>Three range types for episodes are supported: </source>
+-        <translation>支持 3 种集数范围写法：</translation>
++        <translation>支持3种集数范围写法：</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="94"/>
+@@ -1163,13 +1163,13 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="415"/>
+         <source>Export RSS rules</source>
+-        <translation>导出 RSS 规则</translation>
++        <translation>导出RSS规则</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="438"/>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="455"/>
+         <source>I/O Error</source>
+-        <translation>I/O 错误</translation>
++        <translation>I/O错误</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="439"/>
+@@ -1179,7 +1179,7 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="447"/>
+         <source>Import RSS rules</source>
+-        <translation>导入 RSS 规则</translation>
++        <translation>导入RSS规则</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="456"/>
+@@ -1244,7 +1244,7 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="649"/>
+         <source>Regex mode: use Perl-compatible regular expressions</source>
+-        <translation>正则模式：使用兼容 Perl 的正则表达式</translation>
++        <translation>正则模式：使用兼容Perl的正则表达式</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="691"/>
+@@ -1265,7 +1265,7 @@
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="654"/>
+         <source>* to match zero or more of any characters</source>
+-        <translation>* —— 匹配 0 个或多个任意字符</translation>
++        <translation>* —— 匹配0个或多个任意字符</translation>
+     </message>
+     <message>
+         <location filename="../gui/rss/automatedrssdownloader.cpp" line="655"/>
+@@ -1304,12 +1304,12 @@
+     <message>
+         <location filename="../gui/banlistoptionsdialog.ui" line="14"/>
+         <source>List of banned IP addresses</source>
+-        <translation>封禁 IP 地址列表</translation>
++        <translation>封禁IP地址列表</translation>
+     </message>
+     <message>
+         <location filename="../gui/banlistoptionsdialog.ui" line="80"/>
+         <source>Ban IP</source>
+-        <translation>封禁 IP</translation>
++        <translation>封禁IP</translation>
+     </message>
+     <message>
+         <location filename="../gui/banlistoptionsdialog.ui" line="87"/>
+@@ -1325,12 +1325,12 @@
+     <message>
+         <location filename="../gui/banlistoptionsdialog.cpp" line="87"/>
+         <source>The entered IP address is invalid.</source>
+-        <translation>输入的 IP 地址无效。</translation>
++        <translation>输入的IP地址无效。</translation>
+     </message>
+     <message>
+         <location filename="../gui/banlistoptionsdialog.cpp" line="97"/>
+         <source>The entered IP is already banned.</source>
+-        <translation>输入的 IP 地址已在封禁列表。</translation>
++        <translation>输入的IP地址已在封禁列表。</translation>
+     </message>
+ </context>
+ <context>
+@@ -1437,7 +1437,7 @@
+     <message>
+         <location filename="../base/bittorrent/session.cpp" line="4116"/>
+         <source>Cannot write to torrent resume folder: &quot;%1&quot;</source>
+-        <translation>无法写入 Torrent 恢复目录：&quot;%1&quot;</translation>
++        <translation>无法写入Torrent恢复目录：&quot;%1&quot;</translation>
+     </message>
+     <message>
+         <location filename="../base/bittorrent/session.cpp" line="4121"/>
+@@ -1734,7 +1734,7 @@
+         <location filename="../base/bittorrent/torrentcreatorthread.cpp" line="189"/>
+         <location filename="../base/bittorrent/torrentcreatorthread.cpp" line="197"/>
+         <source>Create new torrent file failed. Reason: %1</source>
+-        <translation>创建新的 Torrent 文件失败。原因：%1</translation>
++        <translation>创建新的Torrent文件失败。原因：%1</translation>
+     </message>
+ </context>
+ <context>
+@@ -1937,7 +1937,7 @@
+         <location filename="../gui/deletionconfirmationdialog.cpp" line="46"/>
+         <source>Are you sure you want to delete these %1 torrents from the transfer list?</source>
+         <comment>Are you sure you want to delete these 5 torrents from the transfer list?</comment>
+-        <translation>您确定要从传输列表中删除所选的 %1 个 Torrent 吗？</translation>
++        <translation>您确定要从传输列表中删除所选的 %1 个Torrent吗？</translation>
+     </message>
+ </context>
+ <context>
+@@ -1950,7 +1950,7 @@
+     <message>
+         <location filename="../gui/downloadfromurldialog.ui" line="26"/>
+         <source>Add torrent links</source>
+-        <translation>添加 torrent 链接</translation>
++        <translation>添加种子链接</translation>
+     </message>
+     <message>
+         <location filename="../gui/downloadfromurldialog.ui" line="48"/>
+@@ -2418,7 +2418,7 @@
+     <message>
+         <location filename="../gui/mainwindow.ui" line="223"/>
+         <source>Torrent &amp;Creator</source>
+-        <translation>生成 Torrent</translation>
++        <translation>生成种子</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.ui" line="228"/>
+@@ -2639,7 +2639,7 @@
+     <message>
+         <location filename="../gui/mainwindow.ui" line="167"/>
+         <source>&amp;Add Torrent File...</source>
+-        <translation>添加 Torrent 文件...</translation>
++        <translation>添加种子文件...</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.ui" line="170"/>
+@@ -2681,7 +2681,7 @@
+     <message>
+         <location filename="../gui/mainwindow.ui" line="215"/>
+         <source>Add Torrent &amp;Link...</source>
+-        <translation>添加 Torrent 链接...</translation>
++        <translation>添加种子链接...</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.ui" line="368"/>
+@@ -2740,7 +2740,7 @@
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="453"/>
+         <source>Torrent file association</source>
+-        <translation>关联 torrent 文件</translation>
++        <translation>关联种子文件</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="454"/>
+@@ -2824,7 +2824,7 @@
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="835"/>
+         <source>Torrent added</source>
+-        <translation>Torrent 已添加</translation>
++        <translation>种子已添加</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="835"/>
+@@ -3092,7 +3092,7 @@
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="1359"/>
+         <source>Open Torrent Files</source>
+-        <translation>打开 Torrent 文件</translation>
++        <translation>打开种子文件</translation>
+     </message>
+     <message>
+         <location filename="../gui/mainwindow.cpp" line="1360"/>
+@@ -4515,7 +4515,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="228"/>
+         <source>Confirm when deleting torrents</source>
+-        <translation>删除 Torrent 时提示确认</translation>
++        <translation>删除种子时提示确认</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="238"/>
+@@ -4546,13 +4546,13 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="292"/>
+         <source>Downloading torrents:</source>
+-        <translation>正在下载 torrent：</translation>
++        <translation>正在下载种子：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="303"/>
+         <location filename="../gui/optionsdialog.ui" line="329"/>
+         <source>Start / Stop Torrent</source>
+-        <translation>开始 / 停止 Torrent</translation>
++        <translation>开始/停止Torrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="308"/>
+@@ -4569,7 +4569,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="321"/>
+         <source>Completed torrents:</source>
+-        <translation>完成的 torrent：</translation>
++        <translation>完成的种子：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="371"/>
+@@ -4594,7 +4594,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="407"/>
+         <source>Confirmation on exit when torrents are active</source>
+-        <translation>如果退出时有 Torrent 活动则提示确认</translation>
++        <translation>如果退出时有Torrent活动则提示确认</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="417"/>
+@@ -4670,7 +4670,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="2620"/>
+         <source>A&amp;utomatically add these trackers to new downloads:</source>
+-        <translation>自动添加以下 tracker 到新的 torrent：</translation>
++        <translation>自动添加以下tracker到新的种子：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="2693"/>
+@@ -4737,7 +4737,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="2766"/>
+         <source>RSS Torrent Auto Downloader</source>
+-        <translation>RSS Torrent 自动下载器</translation>
++        <translation>RSSTorrent自动下载器</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="2772"/>
+@@ -4959,7 +4959,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="884"/>
+         <source>Default Torrent Management Mode:</source>
+-        <translation>默认 Torrent 管理模式：</translation>
++        <translation>默认Torrent管理模式：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="901"/>
+@@ -4974,7 +4974,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="929"/>
+         <source>When Torrent Category changed:</source>
+-        <translation>当 Torrent 分类改变时：</translation>
++        <translation>当Torrent分类改变时：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="939"/>
+@@ -5327,7 +5327,7 @@
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="1535"/>
+         <source>Maximum number of upload slots per torrent:</source>
+-        <translation>每个 Torrent 上传窗口数上限：</translation>
++        <translation>每个Torrent上传窗口数上限：</translation>
+     </message>
+     <message>
+         <location filename="../gui/optionsdialog.ui" line="1545"/>
+@@ -6038,7 +6038,7 @@
+     <message>
+         <location filename="../gui/properties/peerlistwidget.cpp" line="93"/>
+         <source>IP</source>
+-        <translation>IP</translation>
++        <translation>对方IP</translation>
+     </message>
+     <message>
+         <location filename="../gui/properties/peerlistwidget.cpp" line="94"/>
+@@ -6059,7 +6059,7 @@
+         <location filename="../gui/properties/peerlistwidget.cpp" line="97"/>
+         <source>Client</source>
+         <comment>i.e.: Client application</comment>
+-        <translation>客户端</translation>
++        <translation>对方使用的客户端</translation>
+     </message>
+     <message>
+         <location filename="../gui/properties/peerlistwidget.cpp" line="98"/>
+@@ -6751,7 +6751,7 @@
+     <message>
+         <location filename="../gui/properties/propertieswidget.ui" line="796"/>
+         <source>Torrent Hash:</source>
+-        <translation>Torrent 哈希值：</translation>
++        <translation>种子哈希值：</translation>
+     </message>
+     <message>
+         <location filename="../gui/properties/propertieswidget.ui" line="828"/>
+@@ -7027,12 +7027,12 @@
+     <message>
+         <location filename="../app/cmdoptions.cpp" line="557"/>
+         <source>Specify whether the &quot;Add New Torrent&quot; dialog opens when adding a torrent.</source>
+-        <translation>指定在添加 torrent 时是否开启“新建 Torrent”窗口</translation>
++        <translation>指定在添加 torrent 时是否开启“新建Torrent”窗口</translation>
+     </message>
+     <message>
+         <location filename="../app/cmdoptions.cpp" line="546"/>
+         <source>Options when adding new torrents:</source>
+-        <translation>添加新的 torrent 时的选项：</translation>
++        <translation>添加新的种子时的选项：</translation>
+     </message>
+     <message>
+         <location filename="../app/cmdoptions.cpp" line="547"/>
+@@ -7042,7 +7042,7 @@
+     <message>
+         <location filename="../app/cmdoptions.cpp" line="547"/>
+         <source>Torrent save path</source>
+-        <translation>Torrent 保存路径</translation>
++        <translation>种子保存路径</translation>
+     </message>
+     <message>
+         <location filename="../app/cmdoptions.cpp" line="548"/>
+@@ -7678,7 +7678,7 @@
+     <message>
+         <location filename="../gui/search/searchjobwidget.cpp" line="354"/>
+         <source>Torrent names only</source>
+-        <translation>仅 Torrent 名称</translation>
++        <translation>仅Torrent名称</translation>
+     </message>
+     <message>
+         <location filename="../gui/search/searchjobwidget.cpp" line="355"/>
+@@ -8704,7 +8704,7 @@
+     <message>
+         <location filename="../gui/torrentcreatordialog.ui" line="17"/>
+         <source>Torrent Creator</source>
+-        <translation>制作 Torrent</translation>
++        <translation>制作Torrent</translation>
+     </message>
+     <message>
+         <location filename="../gui/torrentcreatordialog.ui" line="23"/>
+@@ -8886,14 +8886,14 @@
+     <message>
+         <location filename="../gui/torrentcreatordialog.cpp" line="70"/>
+         <source>Create Torrent</source>
+-        <translation>制作 Torrent</translation>
++        <translation>制作种子</translation>
+     </message>
+     <message>
+         <location filename="../gui/torrentcreatordialog.cpp" line="154"/>
+         <location filename="../gui/torrentcreatordialog.cpp" line="193"/>
+         <location filename="../gui/torrentcreatordialog.cpp" line="205"/>
+         <source>Torrent creation failed</source>
+-        <translation>Torrent 制作失败</translation>
++        <translation>种子制作失败</translation>
+     </message>
+     <message>
+         <location filename="../gui/torrentcreatordialog.cpp" line="154"/>
+@@ -8923,12 +8923,12 @@
+     <message>
+         <location filename="../gui/torrentcreatordialog.cpp" line="217"/>
+         <source>Torrent creator</source>
+-        <translation>制作 Torrent</translation>
++        <translation>制作种子</translation>
+     </message>
+     <message>
+         <location filename="../gui/torrentcreatordialog.cpp" line="218"/>
+         <source>Torrent created:</source>
+-        <translation>Torrent 已创建：</translation>
++        <translation>种子已创建：</translation>
+     </message>
+ </context>
+ <context>
+@@ -9067,7 +9067,7 @@
+     <message>
+         <location filename="../gui/trackerentriesdialog.ui" line="14"/>
+         <source>Edit trackers</source>
+-        <translation>编辑 tracker</translation>
++        <translation>编辑种子</translation>
+     </message>
+     <message>
+         <location filename="../gui/trackerentriesdialog.ui" line="20"/>
+@@ -9166,7 +9166,7 @@
+         <location filename="../gui/properties/trackerlistwidget.cpp" line="298"/>
+         <location filename="../webui/api/torrentscontroller.cpp" line="163"/>
+         <source>This torrent is private</source>
+-        <translation>这是私有 torrent</translation>
++        <translation>这是私有种子</translation>
+     </message>
+     <message>
+         <location filename="../gui/properties/trackerlistwidget.cpp" line="374"/>
+@@ -9350,7 +9350,7 @@
+     <message>
+         <location filename="../gui/transferlistfilterswidget.cpp" line="705"/>
+         <source>Trackers</source>
+-        <translation>Tracker</translation>
++        <translation>服务器</translation>
+     </message>
+ </context>
+ <context>
+@@ -9664,7 +9664,7 @@
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="820"/>
+         <source>Are you sure you want to recheck the selected torrent(s)?</source>
+-        <translation>您确定要重新校验所选的 Torrent 吗？</translation>
++        <translation>您确定要重新校验所选的种子吗？</translation>
+     </message>
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="1004"/>
+@@ -9723,7 +9723,7 @@
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="954"/>
+         <source>Remove all tags from selected torrents?</source>
+-        <translation>从选中的 Torrent 中删除所有标签？</translation>
++        <translation>从选中的Torrent中删除所有标签？</translation>
+     </message>
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="968"/>
+@@ -9838,7 +9838,7 @@
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="1089"/>
+         <source>Automatic Torrent Management</source>
+-        <translation>自动 Torrent 管理</translation>
++        <translation>自动Torrent管理</translation>
+     </message>
+     <message>
+         <location filename="../gui/transferlistwidget.cpp" line="1090"/>
+diff -ruN a/src/webui/api/appcontroller.cpp b/src/webui/api/appcontroller.cpp
+--- a/src/webui/api/appcontroller.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/api/appcontroller.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -166,6 +166,8 @@
+     data["ip_filter_path"] = Utils::Fs::toNativePath(session->IPFilterFile());
+     data["ip_filter_trackers"] = session->isTrackerFilteringEnabled();
+     data["banned_IPs"] = session->bannedIPs().join('\n');
++    data["auto_ban_unknown_peer"] = session->isAutoBanUnknownPeerEnabled();
++    data["auto_ban_bt_player_peer"] = session->isAutoBanBTPlayerPeerEnabled();
+ 
+     // Speed
+     // Global Rate Limits
+@@ -212,6 +214,9 @@
+     // Add trackers
+     data["add_trackers_enabled"] = session->isAddTrackersEnabled();
+     data["add_trackers"] = session->additionalTrackers();
++    data["auto_update_trackers_enabled"] = session->isAutoUpdateTrackersEnabled();
++    data["customize_trackers_list_url"] = pref->customizeTrackersListUrl();
++    data["public_trackers"] = session->publicTrackers();
+ 
+     // Web UI
+     // Language
+@@ -486,6 +491,10 @@
+         session->setTrackerFilteringEnabled(it.value().toBool());
+     if (hasKey("banned_IPs"))
+         session->setBannedIPs(it.value().toString().split('\n', QString::SkipEmptyParts));
++    if (hasKey("auto_ban_unknown_peer"))
++        session->setAutoBanUnknownPeer(it.value().toBool());
++    if (hasKey("auto_ban_bt_player_peer"))
++        session->setAutoBanBTPlayerPeer(it.value().toBool());
+ 
+     // Speed
+     // Global Rate Limits
+@@ -562,6 +571,9 @@
+     // Add trackers
+     session->setAddTrackersEnabled(m["add_trackers_enabled"].toBool());
+     session->setAdditionalTrackers(m["add_trackers"].toString());
++    session->setAutoUpdateTrackersEnabled(m["auto_update_trackers_enabled"].toBool());
++    if (m.contains("customize_trackers_list_url"))
++        pref->setCustomizeTrackersListUrl(m["customize_trackers_list_url"].toString());
+ 
+     // Web UI
+     // Language
+diff -ruN a/src/webui/api/synccontroller.cpp b/src/webui/api/synccontroller.cpp
+--- a/src/webui/api/synccontroller.cpp	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/api/synccontroller.cpp	2020-04-28 23:39:05.000000000 +0800
+@@ -69,6 +69,7 @@
+     const char KEY_PEER_FILES[] = "files";
+     const char KEY_PEER_FLAGS[] = "flags";
+     const char KEY_PEER_FLAGS_DESCRIPTION[] = "flags_desc";
++    const char KEY_PEER_ID[] = "peer_id";
+     const char KEY_PEER_IP[] = "ip";
+     const char KEY_PEER_PORT[] = "port";
+     const char KEY_PEER_PROGRESS[] = "progress";
+@@ -506,6 +507,7 @@
+             {KEY_PEER_IP, pi.address().ip.toString()},
+             {KEY_PEER_PORT, pi.address().port},
+             {KEY_PEER_CLIENT, pi.client()},
++            {KEY_PEER_ID, pi.pid().left(8)},
+             {KEY_PEER_PROGRESS, pi.progress()},
+             {KEY_PEER_DOWN_SPEED, pi.payloadDownSpeed()},
+             {KEY_PEER_UP_SPEED, pi.payloadUpSpeed()},
+diff -ruN a/src/webui/www/private/scripts/dynamicTable.js b/src/webui/www/private/scripts/dynamicTable.js
+--- a/src/webui/www/private/scripts/dynamicTable.js	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/www/private/scripts/dynamicTable.js	2020-04-28 23:39:05.000000000 +0800
+@@ -815,31 +815,31 @@
+         initColumns: function() {
+             this.newColumn('priority', '', '#', 30, true);
+             this.newColumn('state_icon', 'cursor: default', '', 22, true);
+-            this.newColumn('name', '', 'QBT_TR(Name)QBT_TR[CONTEXT=TransferListModel]', 200, true);
+-            this.newColumn('size', '', 'QBT_TR(Size)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('total_size', '', 'QBT_TR(Total Size)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('progress', '', 'QBT_TR(Done)QBT_TR[CONTEXT=TransferListModel]', 85, true);
+-            this.newColumn('status', '', 'QBT_TR(Status)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('num_seeds', '', 'QBT_TR(Seeds)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('num_leechs', '', 'QBT_TR(Peers)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('dlspeed', '', 'QBT_TR(Down Speed)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('upspeed', '', 'QBT_TR(Up Speed)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('eta', '', 'QBT_TR(ETA)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('ratio', '', 'QBT_TR(Ratio)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('category', '', 'QBT_TR(Category)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('tags', '', 'QBT_TR(Tags)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('added_on', '', 'QBT_TR(Added On)QBT_TR[CONTEXT=TransferListModel]', 100, true);
+-            this.newColumn('completion_on', '', 'QBT_TR(Completed On)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('tracker', '', 'QBT_TR(Tracker)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('dl_limit', '', 'QBT_TR(Down Limit)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('up_limit', '', 'QBT_TR(Up Limit)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('downloaded', '', 'QBT_TR(Downloaded)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('uploaded', '', 'QBT_TR(Uploaded)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('downloaded_session', '', 'QBT_TR(Session Download)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('uploaded_session', '', 'QBT_TR(Session Upload)QBT_TR[CONTEXT=TransferListModel]', 100, false);
++            this.newColumn('name', '', 'QBT_TR(Name)QBT_TR[CONTEXT=TransferListModel]', 150, true);
++            this.newColumn('size', '', 'QBT_TR(Size)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('total_size', '', 'QBT_TR(Total Size)QBT_TR[CONTEXT=TransferListModel]', 70, true);
++            this.newColumn('progress', '', 'QBT_TR(Done)QBT_TR[CONTEXT=TransferListModel]', 70, true);
++            this.newColumn('status', '', 'QBT_TR(Status)QBT_TR[CONTEXT=TransferListModel]', 45, true);
++            this.newColumn('num_seeds', '', 'QBT_TR(Seeds)QBT_TR[CONTEXT=TransferListModel]', 45, true);
++            this.newColumn('num_leechs', '', 'QBT_TR(Peers)QBT_TR[CONTEXT=TransferListModel]', 45, true);
++            this.newColumn('dlspeed', '', 'QBT_TR(Down Speed)QBT_TR[CONTEXT=TransferListModel]', 65, true);
++            this.newColumn('downloaded', '', 'QBT_TR(Downloaded)QBT_TR[CONTEXT=TransferListModel]', 65, true);
++            this.newColumn('upspeed', '', 'QBT_TR(Up Speed)QBT_TR[CONTEXT=TransferListModel]', 65, true);
++            this.newColumn('uploaded', '', 'QBT_TR(Uploaded)QBT_TR[CONTEXT=TransferListModel]', 65, true);
++            this.newColumn('eta', '', 'QBT_TR(ETA)QBT_TR[CONTEXT=TransferListModel]', 70, true);
++            this.newColumn('added_on', '', 'QBT_TR(Added On)QBT_TR[CONTEXT=TransferListModel]', 115, true);
++            this.newColumn('save_path', '', 'QBT_TR(Save path)QBT_TR[CONTEXT=TransferListModel]', 120, true);
++            this.newColumn('tracker', '', 'QBT_TR(Tracker)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('completion_on', '', 'QBT_TR(Completed On)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('dl_limit', '', 'QBT_TR(Down Limit)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('up_limit', '', 'QBT_TR(Up Limit)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('ratio', '', 'QBT_TR(Ratio)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('category', '', 'QBT_TR(Category)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('tags', '', 'QBT_TR(Tags)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('downloaded_session', '', 'QBT_TR(Session Download)QBT_TR[CONTEXT=TransferListModel]', 70, false);
++            this.newColumn('uploaded_session', '', 'QBT_TR(Session Upload)QBT_TR[CONTEXT=TransferListModel]', 70, false);
+             this.newColumn('amount_left', '', 'QBT_TR(Remaining)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+             this.newColumn('time_active', '', 'QBT_TR(Time Active)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+-            this.newColumn('save_path', '', 'QBT_TR(Save path)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+             this.newColumn('completed', '', 'QBT_TR(Completed)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+             this.newColumn('max_ratio', '', 'QBT_TR(Ratio Limit)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+             this.newColumn('seen_complete', '', 'QBT_TR(Last Seen Complete)QBT_TR[CONTEXT=TransferListModel]', 100, false);
+@@ -1118,7 +1118,7 @@
+ 
+             // added on
+             this.columns['added_on'].updateTd = function(td, row) {
+-                const date = new Date(this.getRowValue(row) * 1000).toLocaleString();
++                const date = new Date(this.getRowValue(row) * 1000).toLocaleString('chinese',{hour12:false});
+                 td.set('text', date);
+                 td.set('title', date);
+             };
+@@ -1131,7 +1131,7 @@
+                     td.set('title', '');
+                 }
+                 else {
+-                    const date = new Date(this.getRowValue(row) * 1000).toLocaleString();
++                    const date = new Date(this.getRowValue(row) * 1000).toLocaleString('chinese',{hour12:false});
+                     td.set('text', date);
+                     td.set('title', date);
+                 }
+@@ -1372,18 +1372,19 @@
+         Extends: DynamicTable,
+ 
+         initColumns: function() {
+-            this.newColumn('country', '', 'QBT_TR(Country/Region)QBT_TR[CONTEXT=PeerListWidget]', 22, true);
++            this.newColumn('country', '', 'QBT_TR(Country/Region)QBT_TR[CONTEXT=PeerListWidget]', 100, true);
+             this.newColumn('ip', '', 'QBT_TR(IP)QBT_TR[CONTEXT=PeerListWidget]', 80, true);
+             this.newColumn('port', '', 'QBT_TR(Port)QBT_TR[CONTEXT=PeerListWidget]', 35, true);
+             this.newColumn('connection', '', 'QBT_TR(Connection)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+             this.newColumn('flags', '', 'QBT_TR(Flags)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+             this.newColumn('client', '', 'QBT_TR(Client)QBT_TR[CONTEXT=PeerListWidget]', 140, true);
+-            this.newColumn('progress', '', 'QBT_TR(Progress)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+-            this.newColumn('dl_speed', '', 'QBT_TR(Down Speed)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+-            this.newColumn('up_speed', '', 'QBT_TR(Up Speed)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+-            this.newColumn('downloaded', '', 'QBT_TR(Downloaded)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+-            this.newColumn('uploaded', '', 'QBT_TR(Uploaded)QBT_TR[CONTEXT=PeerListWidget]', 50, true);
+-            this.newColumn('relevance', '', 'QBT_TR(Relevance)QBT_TR[CONTEXT=PeerListWidget]', 30, true);
++            this.newColumn('peer_id', '', 'QBT_TR(Peer ID)QBT_TR[CONTEXT=PeerListWidget]', 60, true);
++            this.newColumn('progress', '', 'QBT_TR(Progress)QBT_TR[CONTEXT=PeerListWidget]', 70, true);
++            this.newColumn('dl_speed', '', 'QBT_TR(Down Speed)QBT_TR[CONTEXT=PeerListWidget]', 70, true);
++            this.newColumn('up_speed', '', 'QBT_TR(Up Speed)QBT_TR[CONTEXT=PeerListWidget]', 70, true);
++            this.newColumn('downloaded', '', 'QBT_TR(Downloaded)QBT_TR[CONTEXT=PeerListWidget]', 70, true);
++            this.newColumn('uploaded', '', 'QBT_TR(Uploaded)QBT_TR[CONTEXT=PeerListWidget]', 70, true);
++            this.newColumn('relevance', '', 'QBT_TR(Relevance)QBT_TR[CONTEXT=PeerListWidget]', 100, true);
+             this.newColumn('files', '', 'QBT_TR(Files)QBT_TR[CONTEXT=PeerListWidget]', 100, true);
+ 
+             this.columns['country'].dataProperties.push('country_code');
+diff -ruN a/src/webui/www/private/scripts/prop-general.js b/src/webui/www/private/scripts/prop-general.js
+--- a/src/webui/www/private/scripts/prop-general.js	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/www/private/scripts/prop-general.js	2020-04-28 23:39:05.000000000 +0800
+@@ -155,7 +155,7 @@
+                     $('reannounce').set('html', window.qBittorrent.Misc.friendlyDuration(data.reannounce));
+ 
+                     if (data.last_seen != -1)
+-                        temp = new Date(data.last_seen * 1000).toLocaleString();
++                        temp = new Date(data.last_seen * 1000).toLocaleString('chinese',{hour12:false});
+                     else
+                         temp = "QBT_TR(Never)QBT_TR[CONTEXT=PropertiesWidget]";
+                     $('last_seen').set('html', temp);
+@@ -173,20 +173,20 @@
+ 
+                     $('created_by').set('text', data.created_by);
+                     if (data.addition_date != -1)
+-                        temp = new Date(data.addition_date * 1000).toLocaleString();
++                        temp = new Date(data.addition_date * 1000).toLocaleString('chinese',{hour12:false});
+                     else
+                         temp = "QBT_TR(Unknown)QBT_TR[CONTEXT=HttpServer]";
+ 
+                     $('addition_date').set('html', temp);
+                     if (data.completion_date != -1)
+-                        temp = new Date(data.completion_date * 1000).toLocaleString();
++                        temp = new Date(data.completion_date * 1000).toLocaleString('chinese',{hour12:false});
+                     else
+                         temp = "";
+ 
+                     $('completion_date').set('html', temp);
+ 
+                     if (data.creation_date != -1)
+-                        temp = new Date(data.creation_date * 1000).toLocaleString();
++                        temp = new Date(data.creation_date * 1000).toLocaleString('chinese',{hour12:false});
+                     else
+                         temp = "QBT_TR(Unknown)QBT_TR[CONTEXT=HttpServer]";
+                     $('creation_date').set('html', temp);
+diff -ruN a/src/webui/www/private/views/preferences.html b/src/webui/www/private/views/preferences.html
+--- a/src/webui/www/private/views/preferences.html	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/www/private/views/preferences.html	2020-04-28 23:39:05.000000000 +0800
+@@ -593,6 +593,24 @@
+         </legend>
+         <textarea id="add_trackers_textarea" rows="5" cols="70"></textarea>
+     </fieldset>
++
++    <fieldset class="settings">
++        <legend><input type="checkbox" id="auto_update_trackers_checkbox"/>
++        <label for="auto_update_trackers_checkbox">QBT_TR(开启自动更新trackers列表:)QBT_TR[CONTEXT=OptionsDialog]</label></legend>
++        <table>
++            <tr>
++                <td>
++                    输入自定义Trackers网址：
++                    <input type="text" id="customize_trackers_list_url" style="width: 40em;" />
++                </td>
++            </tr>
++            <tr>
++                <td>
++                    <textarea id="public_trackers_textarea" rows="5" cols="70" readonly></textarea>
++                </td>
++            </tr>
++        </table>
++    </fieldset>
+ </div>
+ 
+ <div id="WebUITab" class="PrefTab invisible">
+@@ -600,56 +618,8 @@
+         <legend>QBT_TR(Language)QBT_TR[CONTEXT=OptionsDialog]</legend>
+         <label for="locale_select">QBT_TR(User Interface Language:)QBT_TR[CONTEXT=OptionsDialog]</label>
+         <select id="locale_select">
+-            <option value="en">English</option>
+-            <option value="en_AU">English(Australia)</option>
+-            <option value="en_GB">English(United Kingdom)</option>
+-            <option value="eo_EO">Esperanto</option>
+-            <option value="fr_FR">Français</option>
+-            <option value="de_DE">Deutsch</option>
+-            <option value="hu_HU">Magyar</option>
+-            <option value="is">Íslenska</option>
+-            <option value="id">Bahasa Indonesia</option>
+-            <option value="it_IT">Italiano</option>
+-            <option value="nl_NL">Nederlands</option>
+-            <option value="es_ES">Español</option>
+-            <option value="ca_ES">Català</option>
+-            <option value="gl_ES">Galego</option>
+-            <option value="oc">lenga d'òc</option>
+-            <option value="pt_BR">Português brasileiro</option>
+-            <option value="pt_PT">Português</option>
+-            <option value="pl_PL">Polski</option>
+-            <option value="lv_LV">latviešu valoda</option>
+-            <option value="lt_LT">Lietuvių</option>
+-            <option value="ms_MY">بهاس ملايو</option>
+-            <option value="cs_CZ">Čeština</option>
+-            <option value="sk_SK">Slovenčina</option>
+-            <option value="sl_SI">Slovenščina</option>
+-            <option value="sr_CS">Српски</option>
+-            <option value="hi_IN">हिन्दी, हिंदी</option>
+-            <option value="hr_HR">Hrvatski</option>
+-            <option value="hy_AM">Հայերեն</option>
+-            <option value="ro_RO">Română</option>
+-            <option value="tr_TR">Türkçe</option>
+-            <option value="el_GR">Ελληνικά</option>
+-            <option value="sv_SE">Svenska</option>
+-            <option value="fi_FI">Suomi</option>
+-            <option value="nb_NO">Norsk</option>
+-            <option value="da_DK">Dansk</option>
+-            <option value="bg_BG">Български</option>
+-            <option value="uk_UA">Українська</option>
+-            <option value="uz@Latn">أۇزبېك</option>
+-            <option value="ru_RU">Русский</option>
+-            <option value="ja_JP">日本語</option>
+-            <option value="he_IL">עברית</option>
+-            <option value="ar_AE">عربي</option>
+-            <option value="ka_GE">ქართული</option>
+-            <option value="be_BY">Беларуская</option>
+-            <option value="eu_ES">Euskara</option>
+-            <option value="vi_VN">tiếng Việt</option>
+             <option value="zh">简体中文</option>
+-            <option value="zh_TW">正體中文</option>
+-            <option value="zh_HK">香港正體字</option>
+-            <option value="ko_KR">한글</option>
++            <option value="en">English</option>
+         </select>
+     </fieldset>
+ 
+@@ -882,6 +852,22 @@
+                     <input type="checkbox" id="resolvePeerCountries">
+                 </td>
+             </tr>
++            <tr>
++                <td>
++                    <label for="autoBanUnknownPeer">QBT_TR(Auto Ban Unknown Client From China:)QBT_TR[CONTEXT=OptionsDialog]</label>
++                </td>
++                <td>
++                    <input type="checkbox" id="autoBanUnknownPeer">
++                </td>
++            </tr>
++            <tr>
++                <td>
++                    <label for="autoBanBittorrentPlayer">QBT_TR(Auto Ban Bittorrent Media Player:)QBT_TR[CONTEXT=OptionsDialog]</label>
++                </td>
++                <td>
++                    <input type="checkbox" id="autoBanBittorrentPlayer">
++                </td>
++            </tr>
+         </table>
+     </fieldset>
+     <fieldset class="settings">
+@@ -1713,6 +1699,9 @@
+                         // Add trackers
+                         $('add_trackers_checkbox').setProperty('checked', pref.add_trackers_enabled);
+                         $('add_trackers_textarea').setProperty('value', pref.add_trackers);
++                        $('auto_update_trackers_checkbox').setProperty('checked', pref.auto_update_trackers_enabled);
++                        $('public_trackers_textarea').setProperty('value', pref.public_trackers);
++                        $('customize_trackers_list_url').setProperty('value', pref.customize_trackers_list_url);
+                         updateAddTrackersEnabled();
+ 
+                         // Web UI tab
+@@ -1771,6 +1760,8 @@
+                         $('saveResumeDataInterval').setProperty('value', pref.save_resume_data_interval);
+                         $('recheckTorrentsOnCompletion').setProperty('checked', pref.recheck_completed_torrents);
+                         $('resolvePeerCountries').setProperty('checked', pref.resolve_peer_countries);
++                        $('autoBanUnknownPeer').setProperty('checked', pref.auto_ban_unknown_peer);
++                        $('autoBanBittorrentPlayer').setProperty('checked', pref.auto_ban_bt_player_peer);
+                         // libtorrent section
+                         $('asyncIOThreads').setProperty('value', pref.async_io_threads);
+                         $('filePoolSize').setProperty('value', pref.file_pool_size);
+@@ -2067,6 +2058,8 @@
+             // Add trackers
+             settings.set('add_trackers_enabled', $('add_trackers_checkbox').getProperty('checked'));
+             settings.set('add_trackers', $('add_trackers_textarea').getProperty('value'));
++            settings.set('auto_update_trackers_enabled', $('auto_update_trackers_checkbox').getProperty('checked'));
++            settings.set('customize_trackers_list_url', $('customize_trackers_list_url').getProperty('value'));
+ 
+             // Web UI tab
+             // Language
+@@ -2143,6 +2136,8 @@
+             settings.set('save_resume_data_interval', $('saveResumeDataInterval').getProperty('value'));
+             settings.set('recheck_completed_torrents', $('recheckTorrentsOnCompletion').getProperty('checked'));
+             settings.set('resolve_peer_countries', $('resolvePeerCountries').getProperty('checked'));
++            settings.set('auto_ban_unknown_peer', $('autoBanUnknownPeer').getProperty('checked'));
++            settings.set('auto_ban_bt_player_peer', $('autoBanBittorrentPlayer').getProperty('checked'));
+ 
+             // libtorrent section
+             settings.set('async_io_threads', $('asyncIOThreads').getProperty('value'));
+diff -ruN a/src/webui/www/translations/webui_translations.qrc b/src/webui/www/translations/webui_translations.qrc
+--- a/src/webui/www/translations/webui_translations.qrc	2020-04-25 05:29:44.000000000 +0800
++++ b/src/webui/www/translations/webui_translations.qrc	2020-04-28 23:39:05.000000000 +0800
+@@ -1,54 +1,6 @@
+ <RCC>
+     <qresource prefix="/www/translations">
+-        <file>webui_ar.qm</file>
+-        <file>webui_be.qm</file>
+-        <file>webui_bg.qm</file>
+-        <file>webui_ca.qm</file>
+-        <file>webui_cs.qm</file>
+-        <file>webui_da.qm</file>
+-        <file>webui_de.qm</file>
+-        <file>webui_el.qm</file>
+-        <file>webui_en.qm</file>
+-        <file>webui_en_AU.qm</file>
+-        <file>webui_en_GB.qm</file>
+-        <file>webui_eo.qm</file>
+-        <file>webui_es.qm</file>
+-        <file>webui_eu.qm</file>
+-        <file>webui_fi.qm</file>
+-        <file>webui_fr.qm</file>
+-        <file>webui_gl.qm</file>
+-        <file>webui_he.qm</file>
+-        <file>webui_hi_IN.qm</file>
+-        <file>webui_hr.qm</file>
+-        <file>webui_hu.qm</file>
+-        <file>webui_hy.qm</file>
+-        <file>webui_id.qm</file>
+-        <file>webui_is.qm</file>
+-        <file>webui_it.qm</file>
+-        <file>webui_ja.qm</file>
+-        <file>webui_ka.qm</file>
+-        <file>webui_ko.qm</file>
+-        <file>webui_lt.qm</file>
+-        <file>webui_lv_LV.qm</file>
+-        <file>webui_ms_MY.qm</file>
+-        <file>webui_nb.qm</file>
+-        <file>webui_nl.qm</file>
+-        <file>webui_oc.qm</file>
+-        <file>webui_pl.qm</file>
+-        <file>webui_pt_BR.qm</file>
+-        <file>webui_pt_PT.qm</file>
+-        <file>webui_ro.qm</file>
+-        <file>webui_ru.qm</file>
+-        <file>webui_sk.qm</file>
+-        <file>webui_sl.qm</file>
+-        <file>webui_sr.qm</file>
+-        <file>webui_sv.qm</file>
+-        <file>webui_tr.qm</file>
+-        <file>webui_uk.qm</file>
+-        <file>webui_uz@Latn.qm</file>
+-        <file>webui_vi.qm</file>
+         <file>webui_zh.qm</file>
+-        <file>webui_zh_HK.qm</file>
+-        <file>webui_zh_TW.qm</file>
++        <file>webui_en.qm</file>
+     </qresource>
+ </RCC>
