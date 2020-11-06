@@ -4,7 +4,9 @@
 # Author: sirpdboy
 # https://github.com/sirpdboy/Openwrt
 echo '修改banner'
-cp -f diy/hong0980/banner package/base-files/files/etc/
+cp -f ./diy/sirpdboy/banner ./package/base-files/files/etc/
+svn co https://github.com/xiaorouji/openwrt-package/trunk/lienol/luci-app-passwall package/luci-app-passwall
+svn co https://github.com/xiaorouji/openwrt-package/trunk/package package/lienol
 
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/trojan
