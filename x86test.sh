@@ -1,5 +1,5 @@
 echo '修改banner'
-cp -f ./diy/sirpdboy/banner ./package/base-files/files/etc/
+cp -f ./openwrt/package/sirpdboy/banner ./package/base-files/files/etc/
 echo '修改时区'
 sed -i "s/'UTC'/'CST-8'\n        set system.@system[-1].zonename='Asia\/Shanghai'/g" package/base-files/files/bin/config_generate
 echo '添加软件包'
