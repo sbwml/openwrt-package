@@ -16,7 +16,7 @@ uci set dhcp.lan.ra_default='1'
 uci set dhcp.lan.force='1'
 uci set dhcp.@dnsmasq[0].cachesize='1500'
 uci set dhcp.@dnsmasq[0].filter_aaaa='0'
-uci set network.@globals[0].ula_prefix='dd48:56c7:1325::/48'
+uci set network.@globals[0].ula_prefix=''
 uci set network.@wan[0].mtu=1400
 uci commit network
 uci set sfe.config.enabled=0
