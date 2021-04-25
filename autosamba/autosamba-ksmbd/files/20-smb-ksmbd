@@ -31,13 +31,12 @@ smb_handle() {
 }
 
 chk_en() {
-	config_get_bool autoshare $1 autoshare 1
-	[ $autoshare -eq 0 ] && exit
+	config_get_bool autoshare $1 autoshare
+	[ "$autoshare" -eq 0 ] && exit
 }
 
 config_load ksmbd
 config_foreach chk_en ksmbd
-
 device=`basename $DEVPATH`
 
 case "$ACTION" in
