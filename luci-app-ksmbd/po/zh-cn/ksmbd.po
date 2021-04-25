@@ -42,7 +42,7 @@ msgstr "编辑模板"
 
 #: applications/luci-app-ksmbd/htdocs/luci-static/resources/view/ksmbd.js:34
 msgid "Edit the template that is used for generating the ksmbd configuration."
-msgstr "编辑用来生成 ksmbd 设置的模板。"
+msgstr "编辑用来生成 ksmbd 的设置模板。"
 
 #: applications/luci-app-ksmbd/htdocs/luci-static/resources/view/ksmbd.js:67
 msgid "Force Root"
@@ -113,7 +113,7 @@ msgid "Network Shares (KSMBD)"
 msgstr "网络共享 (KSMBD 内核)"
 
 msgid "KSMBD is an opensource In-kernel SMB1/2/3 server"
-msgstr "KSMBD 是一个开源的 Linux 内核级 SMB1/2/3 高性能文件共享服务器"
+msgstr "KSMBD 是一个开源的 Linux 内核级 SMB1/2/3 高性能文件共享服务器,<br /><font color=\"red\">增加用户和密码在TTYD中输入命令:ksmbd.adduser -a 用户名</font>"
 
 msgid "Browseable"
 msgstr "可浏览"
@@ -131,4 +131,4 @@ msgid "Auto Share"
 msgstr "自动共享"
 
 msgid "Auto share local disk which connected"
-msgstr "自动匿名共享路由器所连接的硬盘"
+msgstr "自动共享路由器所连接的硬盘"

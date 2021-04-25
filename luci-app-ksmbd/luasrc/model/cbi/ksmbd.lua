@@ -8,7 +8,7 @@ s.anonymous = true
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
 
-s:taboption("general", Value, "name", translate("Hostname"))
+-- s:taboption("general", Value, "name", translate("Hostname"))
 
 s:taboption("general", Value, "description", translate("Description"))
 
@@ -18,7 +18,7 @@ o.placeholder = 'WORKGROUP'
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "0"
+a.default = "1"
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the ksmbd configuration."), 
@@ -75,9 +75,9 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
-io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+-- io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
 
-hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+-- hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
 
 cm = s:option(Value, "create_mask", translate("Create mask"),
         translate("Mask for new files"))
