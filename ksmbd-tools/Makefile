@@ -30,7 +30,7 @@ define Package/ksmbd-tools/Default
   CATEGORY:=Network
   SUBMENU:=Filesystem
   TITLE:=Kernel SMB
-  URL:=https://github.com/cifsd-team/cifsd-tools
+  URL:=https://github.com/cifsd-team/ksmbd-tools
   DEPENDS:= $(ICONV_DEPENDS) $(INTL_DEPENDS)
 endef
 
