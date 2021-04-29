@@ -1,0 +1,76 @@
+#!/bin/sh /etc/rc.common
+#
+# Copyright (C) 2015 OpenWrt-dist
+#
+# This is free software, licensed under the GNU General Public License v3.
+# See /LICENSE for more information.
+#
+
+START=98
+LOG="/var/log/tmpsnort.log"
+limit_log() {
+	local logf=$1
+	[ ! -f "$logf" ] && return
+	local sc=100
+	[ -n "$2" ] && sc=$2
+	local count=$(grep -c "" $logf)
+	if [ $count -gt $sc ];then
+		let count=count-$sc
+		sed -i "1,$count d" $logf
+	fi
+}
+
+init_env() {
+	[ ! -f "$LOG" ] && echo " " > $LOG
+}
+add_rules() {
+rulessum=$(grep -c 'macbind' /etc/config/snort)
+for i in $(seq 0 $((rulessum-1)))
+
+do
+enable=$(uci get snort.@macbind[$i].enable 2>/dev/null)
+if [ "$enable" == 1 ]; then
+ macaddr=$(uci get snort.@macbind[$i].macaddr 2>/dev/null) && MAC="-m mac --mac-source $macaddr" || MAC=""
+ proto=$(uci get snort.@macbind[$i].proto 2>/dev/null) || proto="tcp"
+ sport=$(uci get snort.@macbind[$i].sport 2>/dev/null) && SPT="--sport ${sport}" || SPT=""
+ dport=$(uci get snort.@macbind[$i].dport 2>/dev/null) && DPT="--dport ${dport}" || DPT=""
+ havesMPT=`echo "$sport"|grep ","` && sMPT="-m multiport" || sMPT=""
+ havedMPT=`echo "$dport"|grep ","` && dMPT="-m multiport" || dMPT=""
+ [ -z "$sport" -a -z "$dport" ] && PTS="" || PTS="-p ${proto} ${sMPT} ${SPT} ${dMPT} ${DPT}"
+
+
+ if [ -n "$MAC" -o -n "$sport" -o -n "$dport" ]; then
+  iptables  -A SNORT ${MAC} ${PTS} -j REJECT 2>/dev/null
+  echo   $(date +%Y-%m-%d" "%H:%M:%S):"  SNORT--" ${MAC} ${PTS} >>  $LOG
+ 
+ fi
+fi
+done
+}
+
+start(){
+    init_env
+enabled=`uci get snort.@basic[0].enabled 2>/dev/null`
+limit_log $LOG 200
+    
+    if [ "$enabled" == 1 ]; then
+     echo  "SNORT service start"  >>  $LOG
+	ENsum=`grep -c 'enable .1.' /etc/config/snort`
+	if [ "$ENsum" -gt 0 ]; then
+	 algos=`uci get snort.@basic[0].algos 2>/dev/null`
+	 iptables  -N SNORT 2>/dev/null || iptables  -F SNORT 2>/dev/null
+	 iptables  -C FORWARD -j SNORT 2>/dev/null || iptables  -I FORWARD -j SNORT
+	 add_rules
+	 grep 'snort' /etc/firewall.user || echo "/etc/init.d/snort restart" >> /etc/firewall.user
+	fi
+fi
+}
+
+stop(){
+	sed -i '/snort/d' /etc/firewall.user 2>/dev/null
+	iptables  -D FORWARD -j SNORT 2>/dev/null
+	iptables  -F SNORT 2>/dev/null
+	iptables - X SNORT 2>/dev/null
+        echo  "SNORT service stop"  >>  $LOG
+}
+
