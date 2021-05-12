@@ -18,7 +18,7 @@ o.placeholder = 'WORKGROUP'
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "1"
+a.default = "0"
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the ksmbd configuration."), 
