@@ -1,7 +1,4 @@
---[[
- 静态ARP绑定 Luci页面 Controller
- Copyright (C) 2015 GuoGuo <gch981213@gmail.com>
-]]--
+ 
 
 module("luci.controller.arpbind", package.seeall)
 
