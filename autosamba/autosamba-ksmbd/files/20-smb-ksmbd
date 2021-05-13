@@ -38,8 +38,8 @@ chk_en() {
 config_load ksmbd
 config_foreach chk_en globals
 device=`basename $DEVPATH`
-autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
-[ "$autoshare" -eq 0 ] && exit
+# autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
+# [ "$autoshare" -eq 0 ] && exit
 case "$ACTION" in
 	add)
 

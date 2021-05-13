@@ -2,11 +2,11 @@
 config globals
 	option workgroup 'WORKGROUP'
 	option description 'Ksmbd on OpenWrt'
-	option autoshare '1'
+	option autoshare '0'
 	option name 'OpenWrt'
 
 config share
-	option auto '1'
+	option auto '0'
 	option name 'boot'
 	option path '/boot'
 	option read_only 'no'
