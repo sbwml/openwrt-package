@@ -36,9 +36,10 @@ chk_en() {
 }
 
 config_load ksmbd
-config_foreach chk_en ksmbd
+config_foreach chk_en globals
 device=`basename $DEVPATH`
-
+autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
+[ "$autoshare" -eq 0 ] && exit
 case "$ACTION" in
 	add)
 
@@ -74,7 +75,7 @@ case "$ACTION" in
 				echo -e "\toption create_mask '0777'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
 				echo -e "\toption device '$device'" >> $config_file
-				/etc/init.d/ksmbd reload
+				/etc/init.d/ksmbd restart
 				return
 			fi
 		fi
@@ -94,7 +95,7 @@ case "$ACTION" in
 					mount_dir=`uci get ksmbd.@share[$i].name`
 					uci delete ksmbd.@share[$i]
 					uci commit
-					/etc/init.d/ksmbd reload
+					/etc/init.d/ksmbd restart
 					return
 				}
 			}

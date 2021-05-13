@@ -1,0 +1,18 @@
+
+config globals
+	option workgroup 'WORKGROUP'
+	option description 'Ksmbd on OpenWrt'
+	option autoshare '1'
+	option name 'OpenWrt'
+
+config share
+	option auto '1'
+	option name 'boot'
+	option path '/boot'
+	option read_only 'no'
+	option guest_ok 'yes'
+	option create_mask '0777'
+	option dir_mask '0777'
+	option device 'sda1'
+	option force_root '1'
+	option browseable 'no'

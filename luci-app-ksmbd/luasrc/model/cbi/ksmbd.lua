@@ -2,7 +2,7 @@
 
 m = Map("ksmbd", translate("Network Shares (KSMBD)"))
 
-s = m:section(TypedSection, "globals", translate("KSMBD is an opensource In-kernel SMB1/2/3 server"))
+s = m:section(TypedSection, "globals", translate("KSMBD is an opensource In-kernel SMB1/2/3 server"), translate("<b><font color=\"green\">增加用户和密码在TTYD中输入命令:ksmbd.adduser -a 用户名</font>"))
 s.anonymous = true
 
 s:tab("general",  translate("General Settings"))
@@ -44,6 +44,10 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
+e = s:option(Flag, "auto", translate("enable"))
+e.rmempty = false
+e.default = '1'
+
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
@@ -67,7 +71,7 @@ fr.default = "1"
 fr.enabled = "1"
 fr.disabled = "0"
 
--- s:option(Value, "users", translate("Allowed users")).rmempty = true
+s:option(Value, "users", translate("Allowed users")).rmempty = true
 
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false
@@ -75,9 +79,9 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
--- io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
 
--- hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
 
 cm = s:option(Value, "create_mask", translate("Create mask"),
         translate("Mask for new files"))
@@ -91,4 +95,10 @@ dm.rmempty = true
 dm.size = 4
 dm.default = "0777"
 
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/ksmbd restart")
+end
+
 return m
+

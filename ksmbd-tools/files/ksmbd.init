@@ -58,6 +58,7 @@ smb_header()
 
 smb_add_share()
 {
+	config_get_sane auto "$1" auto
 	config_get_sane name "$1" name
 	config_get_sane path "$1" path
 	config_get_sane comment "$1" comment
@@ -77,7 +78,7 @@ smb_add_share()
 	config_get_sane force_create_mode "$1" force_create_mode
 	config_get_sane force_directory_mode "$1" force_directory_mode
 
-	[ -z "$name" ] || [ -z "$path" ] && return
+	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{
 		printf "\n[%s]\n\tpath = %s\n" "$name" "$path"
