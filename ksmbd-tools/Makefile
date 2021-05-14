@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ksmbd-tools
-PKG_VERSION:=3.3.8
+PKG_VERSION:=3.2.6
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/cifsd-team/ksmbd-tools/tar.gz/$(PKG_VERSION)?
-PKG_HASH:=fb8cef085c740c72700ccee324fb1510774602c43ed1d32a5453c05f5d117188
+PKG_HASH:=595029adb899fd8b4c49bea75bce4e3c3466811ef7089b2a55960174e720d919
 
 PKG_MAINTAINER:=Andy Walsh <andy.walsh44+github@gmail.com>
 PKG_LICENSE:=GPL-2.0-or-later
@@ -30,7 +30,7 @@ define Package/ksmbd-tools/Default
   CATEGORY:=Network
   SUBMENU:=Filesystem
   TITLE:=Kernel SMB
-  URL:=https://github.com/cifsd-team/ksmbd-tools
+  URL:=https://github.com/cifsd-team/cifsd-tools
   DEPENDS:= $(ICONV_DEPENDS) $(INTL_DEPENDS)
 endef
 
@@ -96,7 +96,7 @@ CONFIGURE_ARGS += \
 CONFIGURE_VARS += GLIB_LIBS="$(STAGING_DIR)/usr/lib/libglib-2.0.a"
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -liconv $(if $(INTL_FULL),-lintl) $(if $(CONFIG_USE_GLIBC),-lpthread)
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -liconv $(if $(INTL_FULL),-lintl)
 
 define Package/ksmbd-server/install
 	$(INSTALL_DIR) $(1)/usr/sbin
