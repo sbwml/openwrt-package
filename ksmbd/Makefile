@@ -5,8 +5,8 @@ PKG_VERSION:=3.3.8
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/cifsd-team/cifsd/releases/download/$(PKG_VERSION)?
-PKG_HASH:=skip
+PKG_SOURCE_URL:=https://codeload.github.com/cifsd-team/cifsd/tar.gz/$(PKG_VERSION)?
+PKG_HASH:=8c0d1beaa549053a476287972105f3cad53e9841983c54c2490f52a88e1a4828
 
 PKG_MAINTAINER:=Andy Walsh <andy.walsh44+github@gmail.com>
 PKG_LICENSE:=GPL-2.0-or-later
