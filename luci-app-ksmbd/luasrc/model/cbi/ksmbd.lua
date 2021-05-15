@@ -100,10 +100,6 @@ dm.rmempty = true
 dm.size = 4
 dm.default = "0777"
 
-local e=luci.http.formvalue("cbi.apply")
-if e then
-  io.popen("/etc/init.d/ksmbd restart")
-end
 
 return m
 
