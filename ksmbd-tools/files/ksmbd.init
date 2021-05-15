@@ -10,6 +10,7 @@ config_get_sane()
 	config_get "$@"
 	set -- "$(echo "$1" | tr -d '<>[]{};%?=#\n')"
 }
+
 smb_header()
 {
 	config_get_sane SMBD_IFACE "$1" interface "lan"
@@ -39,18 +40,6 @@ smb_header()
 	    -e "s#|INTERFACES|#$interfaces#g" \
 	    /etc/ksmbd/smb.conf.template > /var/etc/ksmbd/smb.conf
 		
-#	local homes
-#	config_get_bool homes $1 homes 0
-#	[ $homes -gt 0 ] && {
-#		cat <<EOT >> /var/etc/ksmbd/smb.conf
-
-#[homes]
-#	comment     = Home Directories
-#	browsable   = no
-#	read only   = no
-#	create mode = 0750
-#EOT
-#	}
 
 	{
 		printf "\n######### Dynamic written config options #########\n"
@@ -112,10 +101,11 @@ smb_add_share()
 	config_get_sane force_create_mode "$1" force_create_mode
 	config_get_sane force_directory_mode "$1" force_directory_mode
 	homes=$(uci get ksmbd.@globals[0].homes 2>/dev/null)
-	[ "$homes" -eq "0" ]  || [  "$name" -eq "root" ]  && return
+	[  "$path" -eq "/root" ] && [ "$homes" -eq "0" ]  && return
 	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{
+
 		printf "\n[%s]\n\tpath = %s\n" "$name" "$path"
 		[ -n "$comment" ] && printf "\tcomment = %s\n" "$comment"
 
@@ -221,6 +211,6 @@ stop_service()
 	[ -f /tmp/ksmbd.lock ] && rm /tmp/ksmbd.lock
 }
 
-# reload_service() {
-	# restart "$@"
+#reload_service() {
+#	restart "$@"
 # }
