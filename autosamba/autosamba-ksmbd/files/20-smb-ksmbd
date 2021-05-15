@@ -38,8 +38,10 @@ chk_en() {
 config_load ksmbd
 config_foreach chk_en globals
 device=`basename $DEVPATH`
-# autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
-# [ "$autoshare" -eq 0 ] && exit
+autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
+[ "$autoshare" -eq 0 ] && exit
+
+homes=$(uci get ksmbd.@globals[0].homes 2>/dev/null)
 case "$ACTION" in
 	add)
 
@@ -65,7 +67,8 @@ case "$ACTION" in
 			config_foreach smb_handle share $target
 			name=${target#*/mnt/}
 			name=$(echo $name | sed -e "s/^\///")
-			if [ $global -eq 0 ] ;then
+			[ "$homes" -eq "0" ]  || [  "$name" -eq "root" ]  && return
+			if [ $global -eq 0 ]   ;then
 				echo -e "\n\nconfig share" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
 				echo -e "\toption name '$name'" >> $config_file

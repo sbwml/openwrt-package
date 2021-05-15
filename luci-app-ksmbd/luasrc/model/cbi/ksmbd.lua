@@ -15,6 +15,11 @@ s:taboption("general", Value, "description", translate("Description"))
 o = s:taboption("general", Value, "workgroup", translate("Workgroup"))
 o.placeholder = 'WORKGROUP'
 
+h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
+        translate("Allow system users to reach their home directories via " ..
+                "network shares"))
+h.rmempty = false
+
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false

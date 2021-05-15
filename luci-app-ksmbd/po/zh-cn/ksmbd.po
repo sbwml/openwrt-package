@@ -47,6 +47,12 @@ msgstr "共享名"
 msgid "Network Shares"
 msgstr "网络共享"
 
+msgid "Share home-directories"
+msgstr "共享家目录"
+
+msgid "Allow system users to reach their home directories via network shares"
+msgstr "允许系统用户通过网络共享访问他们的家目录"
+
 msgid "Path"
 msgstr "目录"
 
