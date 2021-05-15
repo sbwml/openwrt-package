@@ -76,7 +76,7 @@ fr.default = "1"
 fr.enabled = "1"
 fr.disabled = "0"
 
-s:option(Value, "users", translate("Allowed users")).rmempty = true
+--s:option(Value, "users", translate("Allowed users")).rmempty = true
 
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false
@@ -84,9 +84,9 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
-io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+--io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
 
-hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+--hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
 
 cm = s:option(Value, "create_mask", translate("Create mask"),
         translate("Mask for new files"))
