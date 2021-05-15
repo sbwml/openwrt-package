@@ -5,7 +5,7 @@
 #  作者:Vic
 #
 # 警告:对着屏幕的哥们,我们允许你使用此脚本，但不允许你抹去作者的信息,请保留这段话。
-#
+# 
 
 . /lib/functions.sh
 . /lib/functions/service.sh
@@ -32,15 +32,12 @@ smb_handle() {
 
 chk_en() {
 	config_get_bool autoshare $1 autoshare
-	[ "$autoshare" -eq 0 ] && exit
+ 	[ "$autoshare" -eq 0 ] && exit
 }
 
 config_load ksmbd
 config_foreach chk_en globals
 device=`basename $DEVPATH`
-autoshare=$(uci get ksmbd.@globals[0].autoshare 2>/dev/null)
-[ "$autoshare" -eq 0 ] && exit
-
 homes=$(uci get ksmbd.@globals[0].homes 2>/dev/null)
 case "$ACTION" in
 	add)
@@ -67,7 +64,7 @@ case "$ACTION" in
 			config_foreach smb_handle share $target
 			name=${target#*/mnt/}
 			name=$(echo $name | sed -e "s/^\///")
-			[ "$homes" -eq "0" ]  || [  "$name" -eq "root" ]  && return
+			[ "$name" -eq "root" ] && [ "$homes" -eq "0" ] && return
 			if [ $global -eq 0 ]   ;then
 				echo -e "\n\nconfig share" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
@@ -78,7 +75,7 @@ case "$ACTION" in
 				echo -e "\toption create_mask '0777'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
 				echo -e "\toption device '$device'" >> $config_file
-				/etc/init.d/ksmbd restart
+				/etc/init.d/ksmbd reload
 				return
 			fi
 		fi
