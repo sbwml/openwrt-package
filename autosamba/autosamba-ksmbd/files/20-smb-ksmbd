@@ -38,7 +38,6 @@ chk_en() {
 config_load ksmbd
 config_foreach chk_en globals
 device=`basename $DEVPATH`
-homes=$(uci get ksmbd.@globals[0].homes 2>/dev/null)
 case "$ACTION" in
 	add)
 
@@ -64,7 +63,10 @@ case "$ACTION" in
 			config_foreach smb_handle share $target
 			name=${target#*/mnt/}
 			name=$(echo $name | sed -e "s/^\///")
-			[ "$name" -eq "root" ] && [ "$homes" -eq "0" ] && return
+			homes=`uci get ksmbd.@globals[0].homes`
+			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
+				global=1
+			fi
 			if [ $global -eq 0 ]   ;then
 				echo -e "\n\nconfig share" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
@@ -72,7 +74,7 @@ case "$ACTION" in
 				echo -e "\toption path '$target'" >> $config_file
 				echo -e "\toption read_only 'no'" >> $config_file
 				echo -e "\toption guest_ok 'yes'" >> $config_file
-				echo -e "\toption create_mask '0777'" >> $config_file
+				echo -e "\toption create_mask '0666'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
 				echo -e "\toption device '$device'" >> $config_file
 				/etc/init.d/ksmbd restart

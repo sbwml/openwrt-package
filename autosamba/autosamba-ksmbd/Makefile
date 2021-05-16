@@ -4,6 +4,7 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+# by 2021 sirpdboy
 
 include $(TOPDIR)/rules.mk
 
@@ -17,7 +18,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/autosamba-ksmbd
   TITLE:=Samba autoconfig hotplug script.
   MAINTAINER:=Lean
-  DEPENDS:=+wsdd2
+  DEPENDS:=+luci-app-ksmbd +wsdd2
 endef
 
 define Package/autosamba-ksmbd/description

@@ -101,7 +101,7 @@ smb_add_share()
 	config_get_sane force_create_mode "$1" force_create_mode
 	config_get_sane force_directory_mode "$1" force_directory_mode
 	homes=$(uci get ksmbd.@globals[0].homes 2>/dev/null)
-	[  "$path" -eq "/root" ] && [ "$homes" -eq "0" ]  && return
+	[ "$homes" -eq 0 ]  && [  "$path" -eq "/root" ] &&  return
 	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{

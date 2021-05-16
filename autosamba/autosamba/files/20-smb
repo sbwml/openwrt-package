@@ -72,10 +72,10 @@ case "$ACTION" in
 				echo -e "\toption path '$target'" >> $config_file
 				echo -e "\toption read_only 'no'" >> $config_file
 				echo -e "\toption guest_ok 'yes'" >> $config_file
-				echo -e "\toption create_mask '0777'" >> $config_file
+				echo -e "\toption create_mask '0666'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
 				echo -e "\toption device '$device'" >> $config_file
-				/etc/init.d/samba reload
+				/etc/init.d/samba restart
 				return
 			fi
 		fi
@@ -95,7 +95,7 @@ case "$ACTION" in
 					mount_dir=`uci get samba.@sambashare[$i].name`
 					uci delete samba.@sambashare[$i]
 					uci commit
-					/etc/init.d/samba reload
+					/etc/init.d/samba restart
 					return
 				}
 			}

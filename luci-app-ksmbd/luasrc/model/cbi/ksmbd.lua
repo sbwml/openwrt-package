@@ -8,8 +8,6 @@ s.anonymous = true
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
 
--- s:taboption("general", Value, "name", translate("Hostname"))
-
 s:taboption("general", Value, "description", translate("Description"))
 
 o = s:taboption("general", Value, "workgroup", translate("Workgroup"))
@@ -76,7 +74,7 @@ fr.default = "1"
 fr.enabled = "1"
 fr.disabled = "0"
 
---s:option(Value, "users", translate("Allowed users")).rmempty = true
+-- s:option(Value, "users", translate("Allowed users")).rmempty = true
 
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false
@@ -84,22 +82,24 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
---io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
 
---hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
 
-cm = s:option(Value, "create_mask", translate("Create mask"),
-        translate("Mask for new files"))
+cm = s:option(Value, "create_mask", translate("Create mask"))
 cm.rmempty = true
 cm.size = 4
-cm.default = "0777"
+cm.default = "0666"
 
-dm = s:option(Value, "dir_mask", translate("Directory mask"),
-        translate("Mask for new directories"))
+dm = s:option(Value, "dir_mask", translate("Directory mask"))
 dm.rmempty = true
 dm.size = 4
 dm.default = "0777"
 
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  luci.sys.call("/etc/init.d/ksmbd restart")
+end
 
 return m
 
