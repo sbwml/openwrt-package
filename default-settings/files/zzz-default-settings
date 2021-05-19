@@ -16,14 +16,14 @@ uci set dhcp.lan.ra_default='1'
 uci set dhcp.lan.force='1'
 uci set dhcp.@dnsmasq[0].cachesize='1500'
 uci set dhcp.@dnsmasq[0].filter_aaaa='0'
-uci set network.@globals[0].ula_prefix=''
+#uci set network.@globals[0].ula_prefix=''
 uci set network.@wan[0].mtu=1400
 uci commit network
 uci set upnpd.@upnpd[0].enabled='1'
 uci set upnpd.@upnpd[0].igdv1='1'
 uci commit upnpd
 uci set sfe.config.enabled=0
-uci set sfe.config.bbr=0
+uci set sfe.config.bbr=1
 uci commit sfe
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
