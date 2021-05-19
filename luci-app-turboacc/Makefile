@@ -37,7 +37,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_bbr-cca
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_dnsforwarder
 	bool "Include DNSForwarder"
-	default n
+	default y
 endef
 
 PKG_CONFIG_DEPENDS:= \
