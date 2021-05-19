@@ -7,7 +7,7 @@ LUCI_DEPENDS:=+ksmbd-server +ksmbd-utils
 LUCI_PKGARCH:=all
 PKG_NAME:=luci-app-ksmbd
 PKG_VERSION:=1
-PKG_RELEASE:=8
+PKG_RELEASE:=9
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

@@ -10,7 +10,7 @@ s.anonymous = true
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
 
-s:taboption("general", Value, "name", translate("Hostname"))
+-- s:taboption("general", Value, "name", translate("Hostname"))
 s:taboption("general", Value, "description", translate("Description"))
 s:taboption("general", Value, "workgroup", translate("Workgroup"))
 h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
@@ -20,7 +20,7 @@ h.rmempty = false
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "1"
+a.default = "0"
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
@@ -36,7 +36,7 @@ end
 
 function tmpl.write(self, section, value)
 	value = value:gsub("\r\n?", "\n")
-	nixio.fs.writefile("//etc/samba/smb.conf.template", value)
+	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
 
 
@@ -46,6 +46,10 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
+e = s:option(Flag, "auto", translate("enable"))
+e.rmempty = false
+e.default = 'yes'
+
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
@@ -53,6 +57,7 @@ if nixio.fs.access("/etc/config/fstab") then
 end
 
 s:option(Value, "users", translate("Allowed users")).rmempty = true
+br.default = "yes"
 
 ro = s:option(Flag, "read_only", translate("Read-only"))
 ro.rmempty = false
@@ -69,16 +74,21 @@ go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false
 go.enabled = "yes"
 go.disabled = "no"
+go.default = "yes"
 
-cm = s:option(Value, "create_mask", translate("Create mask"),
-        translate("Mask for new files"))
+cm = s:option(Value, "create_mask", translate("Create mask"))
 cm.rmempty = true
 cm.size = 4
+cm.default = "0666"
 
-dm = s:option(Value, "dir_mask", translate("Directory mask"),
-        translate("Mask for new directories"))
+dm = s:option(Value, "dir_mask", translate("Directory mask"))
 dm.rmempty = true
 dm.size = 4
+dm.default = "0777"
 
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  luci.sys.call("/etc/init.d/samba restart")
+end
 
 return m

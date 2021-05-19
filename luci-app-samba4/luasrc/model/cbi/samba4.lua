@@ -16,6 +16,11 @@ h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
                 "network shares"))
 h.rmempty = false
 
+a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
+        translate("Auto share local disk which connected"))
+a.rmempty = false
+a.default = "no"
+
 macos = s:taboption("general", Flag, "macos", translate("Enable macOS compatible shares"),
 	translate("Enables Apple's AAPL extension globally and adds macOS compatibility options to all shares."))
 macos.rmempty = false
@@ -54,6 +59,10 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
+e = s:option(Flag, "auto", translate("enable"))
+e.rmempty = false
+e.default = 'yes'
+
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
@@ -68,17 +77,19 @@ br.default = "yes"
 ro = s:option(Flag, "read_only", translate("Read-only"))
 ro.enabled = "yes"
 ro.disabled = "no"
-ro.default = "yes"
 
 s:option(Flag, "force_root", translate("Force Root"))
+fr.rmempty = false
+fr.default = "yes"
 
 au = s:option(Value, "users", translate("Allowed users"))
 au.rmempty = true
 
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
+go.rmempty = false
 go.enabled = "yes"
 go.disabled = "no"
-go.default = "no"
+go.default = "yes"
 
 gon = s:option(Flag, "guest_only", translate("Guests only"))
 gon.enabled = "yes"
@@ -95,6 +106,7 @@ cm.rmempty = true
 cm.maxlength = 4
 cm.placeholder = "0666"
 
+
 dm = s:option(Value, "dir_mask", translate("Directory mask"))
 dm.rmempty = true
 dm.maxlength = 4
@@ -108,5 +120,10 @@ s:option(Flag, "timemachine", translate("Apple Time-machine share"))
 tms = s:option(Value, "timemachine_maxsize", translate("Time-machine size in GB"))
 tms.rmempty = true
 tms.maxlength = 5
+
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  luci.sys.call("/etc/init.d/samba4 restart")
+end
 
 return m

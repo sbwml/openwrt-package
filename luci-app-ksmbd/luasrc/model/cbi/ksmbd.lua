@@ -11,7 +11,6 @@ s:tab("template", translate("Edit Template"))
 s:taboption("general", Value, "description", translate("Description"))
 
 o = s:taboption("general", Value, "workgroup", translate("Workgroup"))
-o.placeholder = 'WORKGROUP'
 
 h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
         translate("Allow system users to reach their home directories via " ..
@@ -21,7 +20,7 @@ h.rmempty = false
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "0"
+a.default = "no"
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the ksmbd configuration."), 
@@ -49,7 +48,7 @@ s.template = "cbi/tblsection"
 
 e = s:option(Flag, "auto", translate("enable"))
 e.rmempty = false
-e.default = '1'
+e.default = 'yes'
 
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
@@ -58,23 +57,19 @@ if nixio.fs.access("/etc/config/fstab") then
 end
 
 br = s:option(Flag, "browseable", translate("Browseable"))
-br.rmempty = false
 br.default = "yes"
 br.enabled = "yes"
 br.disabled = "no"
 
 ro = s:option(Flag, "read_only", translate("Read-only"))
-ro.rmempty = false
 ro.enabled = "yes"
 ro.disabled = "no"
 
 fr = s:option(Flag, "force_root", translate("Force Root"))
 fr.rmempty = false
-fr.default = "1"
-fr.enabled = "1"
-fr.disabled = "0"
+fr.default = "yes"
 
--- s:option(Value, "users", translate("Allowed users")).rmempty = true
+s:option(Value, "users", translate("Allowed users")).rmempty = true
 
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false

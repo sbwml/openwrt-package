@@ -88,6 +88,7 @@ smb_header() {
 }
 
 smb_add_share() {
+	config_get_bool auto "$1" auto  0
 	config_get_sane name "$1" name
 	config_get_sane path "$1" path
 	config_get_sane users "$1" users
@@ -106,7 +107,11 @@ smb_add_share() {
 	config_get_sane write_list "$1" write_list
 	config_get_sane read_list "$1" read_list
 
-	[ -z "$name" ] || [ -z "$path" ] && return
+	homes=$(uci get samba4.@samba[0].homes 2>/dev/null)
+	[ "$homes" -eq 0 ]  && [  "$path" -eq "/root" ] &&  return
+
+	[ "$homes" == "0" ]  && [  "$name" == "root" ] &&  return
+	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{
 		printf "\n[$name]\n\tpath = %s\n" "$path"

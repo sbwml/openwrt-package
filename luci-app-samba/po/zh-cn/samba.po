@@ -63,6 +63,12 @@ msgstr "名称"
 msgid "Network Shares"
 msgstr "网络共享"
 
+msgid "Share home-directories"
+msgstr "共享家目录"
+
+msgid "Allow system users to reach their home directories via network shares"
+msgstr "允许系统用户通过网络共享访问他们的家目录"
+
 msgid "Path"
 msgstr "路径"
 
@@ -73,9 +79,6 @@ msgstr "请添加要共享的目录。每个目录指到已挂载设备上的文
 
 msgid "Read-only"
 msgstr "只读"
-
-msgid "Share home-directories"
-msgstr "共享家目录"
 
 msgid "Shared Directories"
 msgstr "共享目录"
@@ -91,6 +94,9 @@ msgstr ""
 
 msgid "Workgroup"
 msgstr "工作组"
+
+msgid "enable"
+msgstr "启用"
 
 msgid "Auto Share"
 msgstr "自动共享"

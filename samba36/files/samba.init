@@ -61,7 +61,7 @@ smb_add_share() {
 	local create_mask
 	local dir_mask
 	local browseable
-
+        config_get_bool auto "$1" auto  0
 	config_get name $1 name
 	config_get path $1 path
 	config_get users $1 users
@@ -71,7 +71,10 @@ smb_add_share() {
 	config_get dir_mask $1 dir_mask
 	config_get browseable $1 browseable
 
-	[ -z "$name" -o -z "$path" ] && return
+#	homes=$(uci get samba.@samba[0].homes 2>/dev/null)
+#	[ "$homes" -eq 0 ]  && [  "$path" -eq "/root" ] &&  return
+#	[ "$homes" == "0" ]  && [  "$name" == "root" ] &&  return
+	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	echo -e "\n[$name]\n\tpath = $path" >> /var/etc/smb.conf
 	[ -n "$users" ] && echo -e "\tvalid users = $users" >> /var/etc/smb.conf

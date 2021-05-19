@@ -76,6 +76,9 @@ msgstr ""
 "这是将从其上生成 ksmbd 配置的文件“/etc/ksmbd/smb.conf.template”的内容。由管道"
 "符（“|”）包围的值不应更改。它们将从“常规设置”标签中获取其值。"
 
+msgid "enable"
+msgstr "启用"
+
 msgid "Workgroup"
 msgstr "工作组"
 
