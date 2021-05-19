@@ -30,13 +30,10 @@ smb_handle() {
 	fi
 }
 
-chk_en() {
-	config_get_bool autoshare $1 autoshare
- 	[ "$autoshare" -eq 0 ] && exit
-}
-
 config_load ksmbd
-config_foreach chk_en globals
+autoshare=`uci get ksmbd.@globals[0].autoshare`
+[ "$autoshare" -eq 0 ] && exit
+[ "$autoshare" == "0" ] && exit
 device=`basename $DEVPATH`
 case "$ACTION" in
 	add)
@@ -67,6 +64,7 @@ case "$ACTION" in
 			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
 				global=1
 			fi
+			
 			if [ $global -eq 0 ]   ;then
 				echo -e "\n\nconfig share" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
@@ -77,7 +75,7 @@ case "$ACTION" in
 				echo -e "\toption create_mask '0666'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
 				echo -e "\toption device '$device'" >> $config_file
-				/etc/init.d/ksmbd restart
+				/etc/init.d/ksmbd reload
 				return
 			fi
 		fi
@@ -97,7 +95,7 @@ case "$ACTION" in
 					mount_dir=`uci get ksmbd.@share[$i].name`
 					uci delete ksmbd.@share[$i]
 					uci commit
-					/etc/init.d/ksmbd restart
+					/etc/init.d/ksmbd reload
 					return
 				}
 			}
