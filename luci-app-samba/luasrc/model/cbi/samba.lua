@@ -20,7 +20,7 @@ h.rmempty = false
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "0"
+a.default = "no"
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
@@ -46,18 +46,17 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
-e = s:option(Flag, "auto", translate("enable"))
-e.rmempty = false
-e.default = 'yes'
-
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
         pth.titleref = luci.dispatcher.build_url("admin", "system", "fstab")
 end
 
+e = s:option(Flag, "auto", translate("enable"))
+e.rmempty = false
+e.default = 'yes'
+
 s:option(Value, "users", translate("Allowed users")).rmempty = true
-br.default = "yes"
 
 ro = s:option(Flag, "read_only", translate("Read-only"))
 ro.rmempty = false

@@ -64,6 +64,9 @@ case "$ACTION" in
 			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
 				global=1
 			fi
+			if [[  "$name" = "root" ] && [ "$homes" -eq 0  ]]   ;then  
+				global=1
+			fi
 			
 			if [ $global -eq 0 ]   ;then
 				echo -e "\n\nconfig share" >> $config_file

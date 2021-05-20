@@ -66,7 +66,7 @@ case "$ACTION" in
 			global=0
 			config_foreach smb_handle sambashare $target
 			name=${target#*/mnt/}
-			homes=`uci get samba.@sambashare[0].homes`
+			homes=`uci get samba.@samba[0].homes`
 			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
 				global=1
 			fi

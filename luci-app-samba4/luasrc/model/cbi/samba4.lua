@@ -59,15 +59,15 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
-e = s:option(Flag, "auto", translate("enable"))
-e.rmempty = false
-e.default = 'yes'
-
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
 	pth.titleref = luci.dispatcher.build_url("admin", "system", "fstab")
 end
+
+e = s:option(Flag, "auto", translate("enable"))
+e.rmempty = false
+e.default = 'yes'
 
 br = s:option(Flag, "browseable", translate("Browse-able"))
 br.enabled = "yes"

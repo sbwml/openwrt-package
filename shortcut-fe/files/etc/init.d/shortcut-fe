@@ -15,7 +15,7 @@
 
 #SFE connection manager has a lower priority, it should be started after other connection manager
 #to detect the existence of connection manager with higher priority
-START=72
+START=90
 
 have_cm() {
 	[ -d "/sys/kernel/debug/ecm" ] && echo 1 && return
@@ -41,6 +41,9 @@ load_sfe_cm() {
 
 start() {
 	[ "$(have_cm)" = "1" ] || load_sfe_cm
+	echo 1 > /sys/fast_classifier/skip_to_bridge_ingress
+	sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
+	[ ! -f /dev/sfe_ipv6 ] && mknod /dev/sfe_ipv6 c $sfe_ipv6 0
 }
 
 stop() {
