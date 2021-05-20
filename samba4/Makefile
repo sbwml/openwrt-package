@@ -2,8 +2,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=samba
-PKG_VERSION:=4.13.4
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_VERSION:=4.13.8
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
@@ -13,7 +13,7 @@ PKG_SOURCE_URL:= \
 		http://www.nic.funet.fi/index/samba/pub/samba/stable/ \
 		http://samba.mirror.bit.nl/samba/ftp/stable/ \
 		https://download.samba.org/pub/samba/stable/
-PKG_HASH:=a1b34c63f7100cc8626902d80f335c7cb0b45d4707dd3c4b010f7a28ed615c78
+PKG_HASH:=3347c0c62cc5b1df1fc92d802282e809c354bfb4941a33c91a7fda3795efbf7f
 
 PKG_MAINTAINER:=Andy Walsh <andy.walsh44+github@gmail.com>
 PKG_LICENSE:=GPL-3.0-only
@@ -22,9 +22,10 @@ PKG_CPE_ID:=cpe:/a:samba:samba
 
 # samba4=(asn1_compile,compile_et) rpcsvc-proto=(rpcgen)
 HOST_BUILD_DEPENDS:=python3/host rpcsvc-proto/host perl/host perl-parse-yapp/host
-PKG_BUILD_DEPENDS:=samba4/host libtasn1/host
+PKG_BUILD_DEPENDS:=samba4/host libtasn1/host SAMBA4_WAF_CROSS_EXECUTE:qemu-userspace/host
 
 PKG_CONFIG_DEPENDS:= \
+	CONFIG_SAMBA4_WAF_CROSS_EXECUTE \
 	CONFIG_SAMBA4_SERVER_NETBIOS \
 	CONFIG_SAMBA4_SERVER_AVAHI \
 	CONFIG_SAMBA4_SERVER_VFS \
@@ -40,9 +41,10 @@ include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/version.mk
-include ../../lang/python/python3-host.mk
-include ../../lang/python/python3-package.mk
-include ../../lang/perl/perlver.mk
+include $(TOPDIR)/feeds/packages/lang/python/python3-host.mk
+include $(TOPDIR)/feeds/packages/lang/python/python3-package.mk
+include $(TOPDIR)/feeds/packages/lang/perl/perlver.mk
+include ./waf_qemu.mk
 
 define Package/samba4/Default
   SECTION:=net
@@ -67,6 +69,14 @@ define Package/samba4-libs
 	+SAMBA4_SERVER_VFS:attr \
 	+SAMBA4_SERVER_AVAHI:libavahi-client \
 	+SAMBA4_SERVER_AD_DC:python3-cryptodome +SAMBA4_SERVER_AD_DC:libopenldap +SAMBA4_SERVER_AD_DC:jansson +SAMBA4_SERVER_AD_DC:libarchive +SAMBA4_SERVER_AD_DC:acl +SAMBA4_SERVER_AD_DC:attr
+endef
+
+define Package/samba4-libs/config
+	config SAMBA4_WAF_CROSS_EXECUTE
+		bool "Use Waf cross-execute, instead of cross-answer files."
+		default n
+		help
+		  Uses qemu (userspace emulation) to probe for waf cross-compile answers, instead of predefined cross-answer files per architecture.
 endef
 
 define Package/samba4-server
@@ -168,7 +178,6 @@ HOST_CONFIGURE_ARGS:=configure $(HOST_CONFIGURE_ARGS)
 CONFIGURE_ARGS += \
 		--hostcc="$(HOSTCC)" \
 		--cross-compile \
-		--cross-answers=cross-answers.txt \
 		--disable-cups \
 		--disable-iprint \
 		--disable-cephfs \
@@ -213,6 +222,15 @@ HOST_CONFIGURE_ARGS += \
 		--without-gettext \
 		--without-regedit \
 		--without-gpgme
+
+ifeq ($(CONFIG_SAMBA4_WAF_CROSS_EXECUTE),y)
+	CONFIGURE_ARGS += \
+		--cross-answers="cross-answers-$(CROSS-ANSWER-OUT).txt" \
+		--cross-execute="$(STAGING_DIR_HOSTPKG)/bin/qemu-$(QEMU_ARCH) $(QEMU_CPU) -L $(STAGING_DIR_ROOT)"
+else
+	CONFIGURE_ARGS += \
+		--cross-answers=cross-answers.txt
+endif		
 
 HOST_CONFIGURE_ARGS += --disable-avahi --without-quotas --without-acl-support --without-winbind \
 	--without-ad-dc --without-json --without-libarchive --disable-python --nopyc --nopyo \
@@ -354,6 +372,16 @@ ifeq ($(CONFIG_SAMBA4_SERVER_AD_DC),)
 endif
 endef
 
+ifeq ($(CONFIG_SAMBA4_WAF_CROSS_EXECUTE),y)
+define Build/Configure
+	$(RM) $(PKG_BUILD_DIR)/cross-answers-$(CROSS-ANSWER-OUT).txt
+	$(call Build/Configure/Default)
+	# @echo '-------------------------------- WAF Answers ------------------------------------'
+	# cat $(PKG_BUILD_DIR)/cross-answers-$(CROSS-ANSWER-OUT).txt
+	# @echo '---------------------------------------------------------------------------------'
+	# exit 1
+endef
+else
 define Build/Configure
 	$(CP) ./waf-cross-answers/$(ARCH).txt $(PKG_BUILD_DIR)/cross-answers.txt
 	echo 'Checking uname sysname type: "$(VERSION_DIST)"' >> $(PKG_BUILD_DIR)/cross-answers.txt
@@ -364,6 +392,7 @@ define Build/Configure
 	echo 'checking for clnt_create(): OK' >> $(PKG_BUILD_DIR)/cross-answers.txt
 	$(call Build/Configure/Default)
 endef
+endif
 
 # Build via "waf install", avoid the make wrapper. (Samba logic is 'waf install' = build + install)
 define Build/Compile
@@ -383,6 +412,11 @@ define Package/samba4-libs/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/*.so* $(1)/usr/lib/
 	# rpath-install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/samba $(1)/usr/lib/
+ifeq ($(CONFIG_SAMBA4_WAF_CROSS_EXECUTE),y)
+	# copy used waf answers as reference
+	$(INSTALL_DIR) $(1)/etc/samba
+	$(CP) $(PKG_BUILD_DIR)/cross-answers-$(CROSS-ANSWER-OUT).txt $(1)/etc/samba
+endif	
 endef
 
 define Package/samba4-client/install

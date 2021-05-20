@@ -12,6 +12,14 @@
 
 global=0
 config_file="/etc/config/samba"
+[ ! -f /etc/config/samba4 ] && {
+echo "
+config samba
+	option workgroup 'WORKGROUP'
+	option charset 'UTF-8'
+	option description 'Samba on OpenWRT'
+" > $config_file
+}
 
 wait_for_init() {
 	for i in `seq 30`
@@ -38,7 +46,6 @@ chk_en() {
 config_load samba
 # config_foreach chk_en samba
 autoshare=`uci get samba.@samba[0].autoshare`
-[ $autoshare -eq 0 ] && exit
 [ $autoshare == "0" ] && exit
 device=`basename $DEVPATH`
 
@@ -66,13 +73,12 @@ case "$ACTION" in
 			global=0
 			config_foreach smb_handle sambashare $target
 			name=${target#*/mnt/}
+			name=$(echo $name | sed -e "s/^\///")
 			homes=`uci get samba.@samba[0].homes`
 			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
 				global=1
 			fi
-			if [[  "$name" = "root" ] && [ "$homes" -eq 0  ]]   ;then  
-				global=1
-			fi
+
 			if [ $global -eq 0 ] ;then
 				echo -e "\n\nconfig sambashare" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file

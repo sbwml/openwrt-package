@@ -16,7 +16,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/autosamba-samba4
   TITLE:=Samba4 autoconfig hotplug script.
   MAINTAINER:=Lean
-  DEPENDS:=+luci-app-samba4 +wsdd2
+  DEPENDS:=+wsdd2
   PKGARCH:=all
 endef
 

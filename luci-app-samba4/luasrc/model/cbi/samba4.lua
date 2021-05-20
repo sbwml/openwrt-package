@@ -7,23 +7,30 @@ s.anonymous = true
 
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
+s.taboption('general', NetworkSelect, 'interface', translate('Interface'),
+			translate('Listen only on the given interface or, if unspecified, on lan'))
 
-s:taboption("general", Value, "name", translate("Hostname"))
-s:taboption("general", Value, "description", translate("Description"))
-s:taboption("general", Value, "workgroup", translate("Workgroup"))
-h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
-        translate("Allow system users to reach their home directories via " ..
-                "network shares"))
-h.rmempty = false
+o=s:taboption("general", Value, "workgroup", translate("Workgroup"))
+o.placeholder = 'WORKGROUP'
 
-a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
-        translate("Auto share local disk which connected"))
-a.rmempty = false
-a.default = "no"
+o=s:taboption("general", Value, "description", translate("Description"))
+o.placeholder = 'Samba4 on OpenWrt'
+
+s.taboption('general', Flag, 'enable_extra_tuning', translate('Enable extra Tuning'),
+			translate('Enable some community driven tuning parameters, that may improve write speeds and better operation via WiFi.\
+			Not recommend if multiple clients write to the same files, at the same time!'))
+
+
+
+
+s.taboption('general', Flag, 'disable_async_io', translate('Force synchronous  I/O'),
+			translate('On lower-end devices may increase speeds, by forceing synchronous I/O instead of the default asynchronous.'))
 
 macos = s:taboption("general", Flag, "macos", translate("Enable macOS compatible shares"),
 	translate("Enables Apple's AAPL extension globally and adds macOS compatibility options to all shares."))
 macos.rmempty = false
+s.taboption('general', Flag, 'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'),
+			translate('Allow legacy smb(v1)/Lanman connections, needed for older devices without smb(v2.1/3) support.'))
 
 if nixio.fs.access("/usr/sbin/nmbd") then
 	s:taboption("general", Flag, "disable_netbios", translate("Disable Netbios"))
@@ -39,6 +46,16 @@ tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
 	translate("This is the content of the file '/etc/samba/smb.conf.template' from which your samba configuration will be generated. " ..
 		"Values enclosed by pipe symbols ('|') should not be changed. They get their values from the 'General Settings' tab."))
+
+h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
+        translate("Allow system users to reach their home directories via " ..
+                "network shares"))
+h.rmempty = false
+
+a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
+        translate("Auto share local disk which connected"))
+a.rmempty = false
+a.default = "no"
 
 tmpl.template = "cbi/tvalue"
 tmpl.rows = 20
@@ -59,17 +76,18 @@ s.anonymous = true
 s.addremove = true
 s.template = "cbi/tblsection"
 
+en = s:option(Flag, "auto", translate("enable"))
+en.rmempty = false
+en.default = "yes"
+
 s:option(Value, "name", translate("Name"))
 pth = s:option(Value, "path", translate("Path"))
 if nixio.fs.access("/etc/config/fstab") then
 	pth.titleref = luci.dispatcher.build_url("admin", "system", "fstab")
 end
 
-e = s:option(Flag, "auto", translate("enable"))
-e.rmempty = false
-e.default = 'yes'
 
-br = s:option(Flag, "browseable", translate("Browse-able"))
+br = s:option(Flag, "browseable", translate("Browseable"))
 br.enabled = "yes"
 br.disabled = "no"
 br.default = "yes"
@@ -77,9 +95,9 @@ br.default = "yes"
 ro = s:option(Flag, "read_only", translate("Read-only"))
 ro.enabled = "yes"
 ro.disabled = "no"
+ro.default = "no"
 
 s:option(Flag, "force_root", translate("Force Root"))
-fr.rmempty = false
 fr.default = "yes"
 
 au = s:option(Value, "users", translate("Allowed users"))
@@ -102,14 +120,16 @@ iown.disabled = "no"
 iown.default = "no"
 
 cm = s:option(Value, "create_mask", translate("Create mask"))
-cm.rmempty = true
+cm.rmempty = false
 cm.maxlength = 4
+cm.default = "0666"
 cm.placeholder = "0666"
 
 
 dm = s:option(Value, "dir_mask", translate("Directory mask"))
-dm.rmempty = true
+dm.rmempty = false
 dm.maxlength = 4
+dm.default = "0777"
 dm.placeholder = "0777"
 
 vfs = s:option(Value, "vfs_objects", translate("Vfs objects"))

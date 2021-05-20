@@ -8,10 +8,16 @@ s.anonymous = true
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
 
-s:taboption("general", Value, "description", translate("Description"))
 
-o = s:taboption("general", Value, "workgroup", translate("Workgroup"))
+-- s.taboption('general', NetworkSelect, 'interface', translate('Interface'),translate('Listen only on the given interface or, if unspecified, on lan'))
 
+o=s:taboption("general", Value, "workgroup", translate("Workgroup"))
+o.placeholder = 'WORKGROUP'
+
+o=s:taboption("general", Value, "description", translate("Description"))
+o.placeholder = 'Ksmbd on OpenWrt'
+
+o = s.taboption('general',Flag, 'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'))
 h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
         translate("Allow system users to reach their home directories via " ..
                 "network shares"))
@@ -64,6 +70,8 @@ br.disabled = "no"
 ro = s:option(Flag, "read_only", translate("Read-only"))
 ro.enabled = "yes"
 ro.disabled = "no"
+ro.default = 'no'
+ro.rmempty = false
 
 fr = s:option(Flag, "force_root", translate("Force Root"))
 fr.rmempty = false
@@ -77,19 +85,27 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
-io = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+o = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+o.enabled = 'yes';
+o.disabled = 'no';
+o.default = 'no';
 
-hd = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+o = s:option(Flag, "hide_dot_files", translate("Hide dot files"))
+o.enabled = 'yes';
+o.disabled = 'no';
+o.default = 'yes';
 
 cm = s:option(Value, "create_mask", translate("Create mask"))
+cm.default = '0666'
 cm.rmempty = true
 cm.size = 4
-cm.default = "0666"
+cm.placeholder = "0666"
 
 dm = s:option(Value, "dir_mask", translate("Directory mask"))
+dm.default = '0777'
 dm.rmempty = true
 dm.size = 4
-dm.default = "0777"
+dm.placeholder = "0777"
 
 local e=luci.http.formvalue("cbi.apply")
 if e then

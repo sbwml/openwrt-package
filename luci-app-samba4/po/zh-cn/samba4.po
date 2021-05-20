@@ -3,28 +3,33 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-10 03:40+0200\n"
-"PO-Revision-Date: 2020-06-07 11:21+0800\n"
-"Last-Translator: dingpengyu <dingpengyu06@gmail.com>\n"
-"Language-Team: <debian-l10n-chinese@lists.debian.org>\n"
-"Language: zh_CN\n"
+"PO-Revision-Date: 2020-11-17 12:29+0000\n"
+"Last-Translator: SunSpring <yearnsun@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"openwrt/luciapplicationssamba4/zh_Hans/>\n"
+"Language: zh_Hans\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 2.3.1\n"
+"X-Generator: Weblate 4.4-dev\n"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:78
+#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:105
 msgid "Allow guests"
 msgstr "允许匿名用户"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:15
-msgid "Allow system users to reach their home directories via network shares"
-msgstr "允许系统用户通过网络共享访问他们的家目录"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:75
+msgid "Allow legacy (insecure) protocols/authentication."
+msgstr "允许旧协议与身份验证(不安全)."
+
+#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:53
+msgid ""
+"Allow legacy smb(v1)/Lanman connections, needed for older devices without "
+"smb(v2.1/3) support."
+msgstr "允许不支持smb(v2.1/3)的旧设备使用旧的smb(v1)/Lanman连接。"
 msgid "Allowed users"
 msgstr "允许用户"
 
@@ -68,10 +73,19 @@ msgstr "编辑模板"
 msgid "Edit the template that is used for generating the samba configuration."
 msgstr "编辑用来生成 samba 设置的模板。"
 
+#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:42
+msgid "Enable extra Tuning"
+msgstr "启用扩展调整"
 #: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:19
 msgid "Enable macOS compatible shares"
 msgstr "启用 macOS 兼容共享"
 
+#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:43
+msgid ""
+"Enable some community driven tuning parameters, that may improve write "
+"speeds and better operation via WiFi. Not recommend if multiple clients "
+"write to the same files, at the same time!"
+msgstr "启用一些社区驱动的调整参数，通过 WiFi 可以提高写入速度和更好地运行。不建议多个客户端同时写入同一文件！"
 #: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:20
 msgid ""
 "Enables Apple's AAPL extension globally and adds macOS compatibility options "
@@ -82,11 +96,15 @@ msgstr "全局启用 Apple 的 AAPL 扩展，并为所有共享添加 macOS 兼�
 msgid "Force Root"
 msgstr "强制 Root"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:8
+#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:46
+msgid "Force synchronous I/O"
+msgstr "强制同步 I/O"
 msgid "General Settings"
 msgstr "基本设置"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:83
+#: applications/luci-app-samba4/root/usr/share/rpcd/acl.d/luci-app-samba4.json:3
+msgid "Grant access to LuCI app samba4"
+msgstr "授予访问LuCI app samba4的权限"
 msgid "Guests only"
 msgstr "仅来宾用户"
 
@@ -99,6 +117,8 @@ msgid "Inherit owner"
 msgstr "继承所有者"
 
 #: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:57
+msgid "Listen only on the given interface or, if unspecified, on lan"
+msgstr "仅监听指定的接口，未指定则监听 lan"
 msgid "Name"
 msgstr "共享名"
 
@@ -112,6 +132,10 @@ msgstr "共享家目录"
 
 msgid "Allow system users to reach their home directories via network shares"
 msgstr "允许系统用户通过网络共享访问他们的家目录"
+msgid ""
+"On lower-end devices may increase speeds, by forceing synchronous I/O "
+"instead of the default asynchronous."
+msgstr "在低端设备上，可以通过强制使用同步I / O而不是默认的异步来提高速度。"
 
 msgid "Path"
 msgstr "目录"

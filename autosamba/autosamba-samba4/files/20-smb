@@ -47,7 +47,6 @@ chk_en() {
 config_load samba4
 #config_foreach chk_en samba
 autoshare=`uci get samba4.@samba[0].autoshare`
-[ $autoshare -eq 0 ] && exit
 [ $autoshare == "0" ] && exit
 device=`basename $DEVPATH`
 
@@ -80,19 +79,17 @@ case "$ACTION" in
 			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
 				global=1
 			fi
-			if [[  "$name" = "root" ] && [ "$homes" -eq 0  ]]   ;then  
-				global=1
-			fi
 			if [ $global -eq 0 ] ;then
 				echo -e "\n\nconfig sambashare" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
 				echo -e "\toption name '$name'" >> $config_file
 				echo -e "\toption path '$target'" >> $config_file
+				echo -e "\toption inherit_owner 'yes'" >> $config_file
+				echo -e "\toption force_root '1'" >> $config_file
 				echo -e "\toption read_only 'no'" >> $config_file
 				echo -e "\toption guest_ok 'yes'" >> $config_file
 				echo -e "\toption create_mask '0666'" >> $config_file
 				echo -e "\toption dir_mask '0777'" >> $config_file
-				echo -e "\toption device '$device'" >> $config_file
 				/etc/init.d/samba4 reload
 				return
 			fi

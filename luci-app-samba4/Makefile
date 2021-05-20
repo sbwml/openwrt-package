@@ -5,9 +5,6 @@ include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=Network Shares - Samba 4 SMB/CIFS module
 LUCI_DEPENDS:=+samba4-server
-PKG_NAME:=luci-app-samba4
-PKG_VERSION:=1
-PKG_RELEASE:=9
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
