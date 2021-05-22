@@ -16,8 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4-dev\n"
+msgid "Network Shares Samba4"
+msgstr "网络共享 Samba4"
 
-#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:105
 msgid "Allow guests"
 msgstr "允许匿名用户"
 
@@ -25,105 +26,98 @@ msgstr "允许匿名用户"
 msgid "Allow legacy (insecure) protocols/authentication."
 msgstr "允许旧协议与身份验证(不安全)."
 
-#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:53
-msgid ""
-"Allow legacy smb(v1)/Lanman connections, needed for older devices without "
-"smb(v2.1/3) support."
+msgid "Allow legacy smb(v1)/Lanman connections, needed for older devices without smb(v2.1/3) support."
 msgstr "允许不支持smb(v2.1/3)的旧设备使用旧的smb(v1)/Lanman连接。"
+
 msgid "Allowed users"
 msgstr "允许用户"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:106
-msgid "Apple Time-machine share"
-msgstr "Apple Time-machine 共享"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:63
+msgid "Apple Time-machine share"
+msgstr "Apple Time-machine共享"
+
+
 msgid "Browse-able"
 msgstr "可浏览"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:93
+
 msgid "Create mask"
 msgstr "创建权限掩码"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:12
+
 msgid "Description"
 msgstr "描述"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:98
+
 msgid "Directory mask"
 msgstr "目录权限掩码"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:27
+
 msgid "Disable Active Directory Domain Controller"
-msgstr "禁用 Active Directory 域控制器"
+msgstr "禁用Active Directory域控制器"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:24
+
 msgid "Disable Netbios"
-msgstr "禁用 Netbios"
+msgstr "禁用Netbios"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:30
+
 msgid "Disable Winbind"
-msgstr "禁用 Winbind"
+msgstr "禁用Winbind"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:9
+
 msgid "Edit Template"
 msgstr "编辑模板"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:34
 msgid "Edit the template that is used for generating the samba configuration."
-msgstr "编辑用来生成 samba 设置的模板。"
+msgstr "编辑用来生成samba设置的模板。"
 
-#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:42
 msgid "Enable extra Tuning"
 msgstr "启用扩展调整"
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:19
-msgid "Enable macOS compatible shares"
-msgstr "启用 macOS 兼容共享"
 
-#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:43
+
+msgid "Enable macOS compatible shares"
+msgstr "启用macOS兼容共享"
+
+ 
 msgid ""
 "Enable some community driven tuning parameters, that may improve write "
 "speeds and better operation via WiFi. Not recommend if multiple clients "
 "write to the same files, at the same time!"
 msgstr "启用一些社区驱动的调整参数，通过 WiFi 可以提高写入速度和更好地运行。不建议多个客户端同时写入同一文件！"
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:20
+ 
 msgid ""
 "Enables Apple's AAPL extension globally and adds macOS compatibility options "
 "to all shares."
 msgstr "全局启用 Apple 的 AAPL 扩展，并为所有共享添加 macOS 兼容性选项。"
+ 
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:73
 msgid "Force Root"
-msgstr "强制 Root"
+msgstr "强制Root"
+ 
 
-#: applications/luci-app-samba4/htdocs/luci-static/resources/view/samba4.js:46
 msgid "Force synchronous I/O"
-msgstr "强制同步 I/O"
+msgstr "强制同步I/O"
+
 msgid "General Settings"
 msgstr "基本设置"
 
-#: applications/luci-app-samba4/root/usr/share/rpcd/acl.d/luci-app-samba4.json:3
 msgid "Grant access to LuCI app samba4"
 msgstr "授予访问LuCI app samba4的权限"
+
 msgid "Guests only"
 msgstr "仅来宾用户"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:11
 msgid "Hostname"
 msgstr "主机名"
-
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:88
 msgid "Inherit owner"
 msgstr "继承所有者"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:57
 msgid "Listen only on the given interface or, if unspecified, on lan"
 msgstr "仅监听指定的接口，未指定则监听 lan"
+
 msgid "Name"
 msgstr "共享名"
 
-#: applications/luci-app-samba4/luasrc/controller/samba4.lua:12
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:3
 msgid "Network Shares"
 msgstr "网络共享"
 
@@ -131,30 +125,26 @@ msgid "Share home-directories"
 msgstr "共享家目录"
 
 msgid "Allow system users to reach their home directories via network shares"
-msgstr "允许系统用户通过网络共享访问他们的家目录"
-msgid ""
-"On lower-end devices may increase speeds, by forceing synchronous I/O "
-"instead of the default asynchronous."
-msgstr "在低端设备上，可以通过强制使用同步I / O而不是默认的异步来提高速度。"
+msgstr "允许系统用户通过网络共享访问他们的root目录"
+
+msgid "On lower-end devices may increase speeds, by forceing synchronous I/O instead of the default asynchronous."
+msgstr "在低端设备上，可以通过强制使用同步I/O而不是默认的异步来提高速度。"
 
 msgid "Path"
 msgstr "目录"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:52
 msgid ""
 "Please add directories to share. Each directory refers to a folder on a "
 "mounted device."
 msgstr "请添加要共享的目录。每个目录指到已挂载设备上的文件夹。"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:68
+
 msgid "Read-only"
 msgstr "只读"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:51
 msgid "Shared Directories"
 msgstr "共享目录"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:35
 msgid ""
 "This is the content of the file '/etc/samba/smb.conf.template' from which "
 "your samba configuration will be generated. Values enclosed by pipe symbols "
@@ -164,25 +154,20 @@ msgstr ""
 "这是将从其上生成 samba 配置的文件“/etc/samba/smb.conf.template”的内容。由管道"
 "符（“|”）包围的值不应更改。它们将从“常规设置”标签中获取其值。"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:108
 msgid "Time-machine size in GB"
-msgstr "Time-machine 大小（GB）"
+msgstr "Time-machine大小（GB）"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:103
 msgid "Vfs objects"
-msgstr "VFS 对象"
+msgstr "VFS对象"
 
-#: applications/luci-app-samba4/luasrc/model/cbi/samba4.lua:13
 msgid "Workgroup"
 msgstr "工作组"
 
 msgid "enable"
 msgstr "启用"
 
-
-
-#~ msgid "Browseable"
-#~ msgstr "可浏览"
+msgid "Browseable"
+msgstr "可浏览"
 
 #~ msgid "Mask for new directories"
 #~ msgstr "新目录权限掩码"
@@ -197,5 +182,5 @@ msgid "Auto Share"
 msgstr "自动共享"
 
 msgid "Auto share local disk which connected"
-msgstr "自动匿名共享路由器所连接的硬盘"
+msgstr "开机自动匿名共享路由器所连接的硬盘"
 

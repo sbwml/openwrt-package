@@ -1,14 +1,14 @@
 -- Licensed to the public under the Apache License 2.0.
 
-m = Map("samba4", translate("Network Shares"))
+m = Map("samba4", translate("Network Shares Samba4"))
 
-s = m:section(TypedSection, "samba", "Samba")
+s = m:section(TypedSection, "samba", "")
 s.anonymous = true
 
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
-s.taboption('general', NetworkSelect, 'interface', translate('Interface'),
-			translate('Listen only on the given interface or, if unspecified, on lan'))
+
+--o=s:taboption("general",NetworkSelect,'interface', translate('Interface'),translate('Listen only on the given interface or, if unspecified, on lan'))
 
 o=s:taboption("general", Value, "workgroup", translate("Workgroup"))
 o.placeholder = 'WORKGROUP'
@@ -16,21 +16,15 @@ o.placeholder = 'WORKGROUP'
 o=s:taboption("general", Value, "description", translate("Description"))
 o.placeholder = 'Samba4 on OpenWrt'
 
-s.taboption('general', Flag, 'enable_extra_tuning', translate('Enable extra Tuning'),
-			translate('Enable some community driven tuning parameters, that may improve write speeds and better operation via WiFi.\
-			Not recommend if multiple clients write to the same files, at the same time!'))
-
-
-
-
-s.taboption('general', Flag, 'disable_async_io', translate('Force synchronous  I/O'),
+h = s:taboption("general", Flag, 'disable_async_io', translate('Force synchronous  I/O'),
 			translate('On lower-end devices may increase speeds, by forceing synchronous I/O instead of the default asynchronous.'))
+
+h = s:taboption("general", Flag,  'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'),
+			translate('Allow legacy smb(v1)/Lanman connections, needed for older devices without smb(v2.1/3) support.'))
 
 macos = s:taboption("general", Flag, "macos", translate("Enable macOS compatible shares"),
 	translate("Enables Apple's AAPL extension globally and adds macOS compatibility options to all shares."))
 macos.rmempty = false
-s.taboption('general', Flag, 'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'),
-			translate('Allow legacy smb(v1)/Lanman connections, needed for older devices without smb(v2.1/3) support.'))
 
 if nixio.fs.access("/usr/sbin/nmbd") then
 	s:taboption("general", Flag, "disable_netbios", translate("Disable Netbios"))
@@ -42,20 +36,14 @@ if nixio.fs.access("/usr/sbin/winbindd") then
 	s:taboption("general", Flag, "disable_winbind", translate("Disable Winbind"))
 end
 
+h = s:taboption("general", Flag,  'enable_extra_tuning', translate('Enable extra Tuning'),
+			translate('Enable some community driven tuning parameters, that may improve write speeds and better operation via WiFi.\
+			Not recommend if multiple clients write to the same files, at the same time!'))
+
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
 	translate("This is the content of the file '/etc/samba/smb.conf.template' from which your samba configuration will be generated. " ..
 		"Values enclosed by pipe symbols ('|') should not be changed. They get their values from the 'General Settings' tab."))
-
-h = s:taboption("general", Flag, "homes", translate("Share home-directories"),
-        translate("Allow system users to reach their home directories via " ..
-                "network shares"))
-h.rmempty = false
-
-a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
-        translate("Auto share local disk which connected"))
-a.rmempty = false
-a.default = "no"
 
 tmpl.template = "cbi/tvalue"
 tmpl.rows = 20
@@ -68,6 +56,14 @@ function tmpl.write(self, section, value)
 	value = value:gsub("\r\n?", "\n")
 	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
+
+h = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via "))
+h.rmempty = false
+
+a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
+        translate("Auto share local disk which connected"))
+a.rmempty = false
+a.default = "no"
 
 
 s = m:section(TypedSection, "sambashare", translate("Shared Directories")
@@ -86,8 +82,7 @@ if nixio.fs.access("/etc/config/fstab") then
 	pth.titleref = luci.dispatcher.build_url("admin", "system", "fstab")
 end
 
-
-br = s:option(Flag, "browseable", translate("Browseable"))
+br = s:option(Flag, "browseable", translate("Browse-able"))
 br.enabled = "yes"
 br.disabled = "no"
 br.default = "yes"
@@ -97,8 +92,10 @@ ro.enabled = "yes"
 ro.disabled = "no"
 ro.default = "no"
 
-s:option(Flag, "force_root", translate("Force Root"))
-fr.default = "yes"
+br=s:option(Flag, "force_root", translate("Force Root"))
+br.enabled = "yes"
+br.disabled = "no"
+br.default = "yes"
 
 au = s:option(Value, "users", translate("Allowed users"))
 au.rmempty = true
@@ -109,10 +106,11 @@ go.enabled = "yes"
 go.disabled = "no"
 go.default = "yes"
 
+
 gon = s:option(Flag, "guest_only", translate("Guests only"))
 gon.enabled = "yes"
 gon.disabled = "no"
-gon.default = "no"
+gon.default = "yes"
 
 iown = s:option(Flag, "inherit_owner", translate("Inherit owner"))
 iown.enabled = "yes"
@@ -145,5 +143,4 @@ local e=luci.http.formvalue("cbi.apply")
 if e then
   luci.sys.call("/etc/init.d/samba4 restart")
 end
-
 return m
