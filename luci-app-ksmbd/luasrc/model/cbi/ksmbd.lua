@@ -79,6 +79,7 @@ fr.default = "yes"
 
 s:option(Value, "users", translate("Allowed users")).rmempty = true
 
+
 go = s:option(Flag, "guest_ok", translate("Allow guests"))
 go.rmempty = false
 go.enabled = "yes"
