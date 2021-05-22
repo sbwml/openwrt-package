@@ -107,8 +107,8 @@ smb_add_share() {
 	config_get_sane write_list "$1" write_list
 	config_get_sane read_list "$1" read_list
 
-#	homes=$(uci get samba4.@samba[0].homes 2>/dev/null)
-#	[ "$homes" == "0" ]  && [  "$name" == "root" ] &&  return
+	homes=$(uci get samba4.@samba[0].homes 2>/dev/null)
+	[ "$homes" == "0" ]  && [  "$name" == "root" ] &&  return
 	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{
