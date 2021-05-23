@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4-dev\n"
+
 msgid "Network Shares Samba4"
 msgstr "网络共享 Samba4"
 
@@ -109,6 +110,7 @@ msgstr "仅来宾用户"
 
 msgid "Hostname"
 msgstr "主机名"
+
 msgid "Inherit owner"
 msgstr "继承所有者"
 
@@ -124,7 +126,7 @@ msgstr "网络共享"
 msgid "Share home-directories"
 msgstr "共享家目录"
 
-msgid "Allow system users to reach their home directories via network shares"
+msgid "Allow system users to reach their home directories via"
 msgstr "允许系统用户通过网络共享访问他们的root目录"
 
 msgid "On lower-end devices may increase speeds, by forceing synchronous I/O instead of the default asynchronous."

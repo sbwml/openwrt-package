@@ -57,7 +57,7 @@ function tmpl.write(self, section, value)
 	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
 
-h = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via "))
+h = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via"))
 h.rmempty = false
 
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
@@ -83,16 +83,19 @@ if nixio.fs.access("/etc/config/fstab") then
 end
 
 br = s:option(Flag, "browseable", translate("Browse-able"))
+br.rmempty = false
 br.enabled = "yes"
 br.disabled = "no"
 br.default = "yes"
 
 ro = s:option(Flag, "read_only", translate("Read-only"))
+ro.rmempty = false
 ro.enabled = "yes"
 ro.disabled = "no"
 ro.default = "no"
 
 br=s:option(Flag, "force_root", translate("Force Root"))
+br.rmempty = false
 br.enabled = "yes"
 br.disabled = "no"
 br.default = "yes"
@@ -108,14 +111,16 @@ go.default = "yes"
 
 
 gon = s:option(Flag, "guest_only", translate("Guests only"))
+gon.rmempty = false
 gon.enabled = "yes"
 gon.disabled = "no"
 gon.default = "yes"
 
 iown = s:option(Flag, "inherit_owner", translate("Inherit owner"))
+iown.rmempty = false
 iown.enabled = "yes"
 iown.disabled = "no"
-iown.default = "no"
+iown.default = "yes"
 
 cm = s:option(Value, "create_mask", translate("Create mask"))
 cm.rmempty = false
