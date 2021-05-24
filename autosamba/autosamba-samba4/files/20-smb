@@ -45,9 +45,9 @@ chk_en() {
 	[ $autoshare -eq 0 ] && exit
 }
 config_load samba4
-config_foreach chk_en samba
+#config_foreach chk_en samba
 autoshare=`uci get samba4.@samba[0].autoshare`
-[ $autoshare == "0" ] && exit
+[ $autoshare -eq "0" ] && exit
 
 device=`basename $DEVPATH`
 
@@ -77,20 +77,12 @@ case "$ACTION" in
 			name=${target#*/mnt/}
 			name=$(echo $name | sed -e "s/^\///")
 			homes=`uci get samba4.@samba[0].homes`
-			[  "$name" == "root" ] && return
-			[   "$target" = "/root"  ] && return
-			if [[  "$target" = "/root" ] && [ "$homes" = "0" ]]   ;then  
-				global=1
-			fi
-			if [[  "$name" = "root" ] && [ "$homes" -eq 0  ]]   ;then  
-				global=1
-			fi
+			[  "$target" = "/boot" ] && [ "$homes" = "0" ] && global=1
 			if [ $global -eq 0 ] ;then
 				echo -e "\n\nconfig sambashare" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
 				echo -e "\toption name '$name'" >> $config_file
 				echo -e "\toption path '$target'" >> $config_file
-
 				echo -e "\toption force_root 'yes'" >> $config_file
 				echo -e "\toption read_only 'no'" >> $config_file
 				echo -e "\toption guest_ok 'yes'" >> $config_file
@@ -103,6 +95,20 @@ case "$ACTION" in
 			fi
 		fi
 	done
+	homes=`uci get samba4.@samba[0].homes`
+	if [ "$homes" -eq "0" ]; then
+		sum=$(grep -c 'config sambashare' /etc/config/samba4)
+		for i in $(seq 0 $((sum - 1))); do
+	      		path=$(uci get samba4.@sambashare[$i].path 2>/dev/null)
+			[ "$path" = "/boot" ] && {
+					mount_dir=`uci get samba4.@sambashare[$i].name`
+					uci delete samba4.@sambashare[$i]
+					uci commit
+					/etc/init.d/samba4 reload
+			}
+
+	      done
+	fi
 	;;
 
 	remove)

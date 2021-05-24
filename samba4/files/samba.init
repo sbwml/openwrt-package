@@ -106,7 +106,6 @@ smb_add_share() {
 	config_get_bool force_root "$1" force_root 0
 	config_get_sane write_list "$1" write_list
 	config_get_sane read_list "$1" read_list
-
 	[ -z "$name" ] || [ -z "$path" ]  || [  "$auto" -eq 0 ] && return
 
 	{
@@ -187,7 +186,7 @@ service_triggers() {
 
 start_service() {
 	init_config
-	
+
 	if [ ! -e /etc/samba/smb.conf ]; then
 		logger -p daemon.error -t 'samba4-server' "missing config /etc/samba/smb.conf!"
 		exit 1
