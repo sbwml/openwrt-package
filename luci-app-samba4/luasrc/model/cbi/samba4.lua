@@ -16,11 +16,15 @@ o.placeholder = 'WORKGROUP'
 o=s:taboption("general", Value, "description", translate("Description"))
 o.placeholder = 'Samba4 on OpenWrt'
 
-h = s:taboption("general", Flag, 'disable_async_io', translate('Force synchronous  I/O'),
+br = s:taboption("general", Flag, 'disable_async_io', translate('Force synchronous  I/O'),
 			translate('On lower-end devices may increase speeds, by forceing synchronous I/O instead of the default asynchronous.'))
 
-h = s:taboption("general", Flag,  'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'),
+br = s:taboption("general", Flag,  'allow_legacy_protocols', translate('Allow legacy (insecure) protocols/authentication.'),
 			translate('Allow legacy smb(v1)/Lanman connections, needed for older devices without smb(v2.1/3) support.'))
+br.rmempty = false
+br.enabled = "yes"
+br.disabled = "no"
+br.default = "yes"
 
 macos = s:taboption("general", Flag, "macos", translate("Enable macOS compatible shares"),
 	translate("Enables Apple's AAPL extension globally and adds macOS compatibility options to all shares."))
@@ -57,9 +61,11 @@ function tmpl.write(self, section, value)
 	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
 
-h = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via"))
-h.rmempty = false
-
+br = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via"))
+br.rmempty = false
+br.enabled = "yes"
+br.disabled = "no"
+br.default = "yes"
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
