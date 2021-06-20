@@ -1,5 +1,6 @@
 #!/bin/sh
 
+DOCKER_CONFIG="[ -x /etc/init.d/dockerd ] && /etc/init.d/dockerd restart"
 uci set luci.main.lang=zh_cn
 uci set luci.main.mediaurlbase='/luci-static/opentopd'
 uci commit luci
@@ -63,6 +64,20 @@ echo "ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
 sed -i '/option disabled/d' /etc/config/wireless
 sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
 wifi up
+
+# Add ipsec iptable rules to allow ipsec client access router
+sed -i '/^.*--pol ipsec.*/d' /etc/firewall.user
+ if [ -x /etc/init.d/ipsecvpn ]; then
+ echo "iptables -D FORWARD  -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -D FORWARD  -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -D INPUT -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -D OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+
+ echo "iptables -I FORWARD  -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -I FORWARD  -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -I INPUT -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+ echo "iptables -I OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
+fi
 
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
 echo "DISTRIB_REVISION='R21.6.1'" >> /etc/openwrt_release
