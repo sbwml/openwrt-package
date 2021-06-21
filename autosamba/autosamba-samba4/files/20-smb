@@ -45,7 +45,7 @@ chk_en() {
 	[ $autoshare -eq 0 ] && exit
 }
 config_load samba4
-#config_foreach chk_en samba
+config_foreach chk_en samba
 autoshare=`uci get samba4.@samba[0].autoshare`
 [ $autoshare -eq "0" ] && exit
 
