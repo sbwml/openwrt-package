@@ -1,0 +1,7 @@
+#!/bin/sh
+uci batch <<-EOF
+	set luci.themes.chuqitopd=/luci-static/chuqitopd
+	set luci.main.mediaurlbase=/luci-static/chuqitopd
+	commit luci
+EOF
+exit 0
