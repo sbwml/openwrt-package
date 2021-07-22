@@ -229,9 +229,9 @@
 		<% if css then %>
 			<style title="text/css"><%= css %></style>
 		<% end -%>
-	<script src="<%=resource%>/cbi.js<%# ?v=PKG_VERSION %>"></script>
-	<script src="<%=resource%>/xhr.js<%# ?v=PKG_VERSION %>"></script>
-	<script src="<%=media%>/js/jquery.min.js<%# ?v=PKG_VERSION %>"></script>
+	<script src="<%=resource%>/cbi.js?v=1.1.2"></script>
+	<script src="<%=resource%>/xhr.js?v=1.1.2"></script>
+	<script src="<%=media%>/js/jquery.min.js?v=1.1.2"></script>
 </head>
 <body class="lang_<%=luci.i18n.context.lang%> <%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
 
@@ -246,7 +246,7 @@
     </div>
     <div class="main-left">
         <div class="sidenav-header d-flex align-items-center">
-            <a class="brand" href="#"><%=boardinfo.hostname or "?"%><img width="30"  src="<%=media%>/icons/ue409.png"></a>
+            <a class="brand" href="#"><%=boardinfo.hostname or "?"%><img width="30"  src="<%=media%>/ue409.png"></a>
             <div class="ml-auto">
                 <!-- Sidenav toggler -->
                 <div class="sidenav-toggler d-none d-xl-block active" data-action="sidenav-unpin" data-target="#sidenav-main">
@@ -265,7 +265,7 @@
                 <div class="fill">
                     <div class="container">
                         <a class="showSide"></a>
-                        <a class="brand" href="#"><%=boardinfo.hostname or "?"%></a><img width="30"  src="<%=media%>/icons/ue409.png">
+                        <a class="brand" href="#"><%=boardinfo.hostname or "?"%></a><img width="30"  src="<%=media%>/ue409.png">
             <div class="ml-auto">
                         <div class="pull-right">
                             <% render_changes() %>
@@ -279,7 +279,7 @@
             </header>
 		<div class="darkMask"></div>
 		<% if bgcount > 0 then %>
-		<div class="login-bg" style="background-image:url(<%=media%>/img/bg<%=math.random(1,bgcount)%>.jpg)"></div>
+		<div class="login-bg" style="background-image:url(<%=media%>/img/bg1.jpg)"></div>
 		<% end %>
 		<div id="maincontent">
 			<div class="container">

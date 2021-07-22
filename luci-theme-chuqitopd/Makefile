@@ -9,8 +9,8 @@ THEME_NAME:=chuqitopd
 THEME_TITLE:=chuqitopd Theme
 
 PKG_NAME:=luci-theme-$(THEME_NAME)
-PKG_VERSION:=1.1.2
-PKG_RELEASE:=20210720
+PKG_VERSION:=1.1.4
+PKG_RELEASE:=20210722
 
 include $(INCLUDE_DIR)/package.mk
 

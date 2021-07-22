@@ -512,21 +512,21 @@ fieldset > fieldset
 }
 
 /* fix progress bar */
+
+
 #swaptotal > div, #swapfree > div, #memfree > div, #membuff > div, #conns > div, #memtotal > div
 {
     width: 100% !important;
     height: 1.6rem !important;
     line-height: 1.6rem;
-    border-radius: .25rem;
+    border-radius: .75rem;
+    
+	border-top-left-radius: .75rem;
+	border-bottom-right-radius: .75rem;
     color: #eee !important;
     background-color: #aaa !important;
 }
 
-#swaptotal>div>div, #swapfree>div>div, #memfree>div>div, #membuff>div>div, #conns>div>div, #memtotal>div>div
-{
-    color: #eee !important;
-    background-color: #555 !important;
-}
 
 #swaptotal>div>div>div>small, #swapfree>div>div>div>small, #memfree>div>div>div>small, #membuff>div>div>div>small, #conns>div>div>div>small, #memtotal>div>div>div>small
 {
@@ -537,7 +537,10 @@ fieldset > fieldset
 {
     height: 100% !important;
     background-color: #555 !important;
+	border-top-left-radius: .75rem;
+	border-bottom-left-radius: .75rem;
 }
+
 
 /* fix multiple table */
 
@@ -627,7 +630,7 @@ td > table > tbody > tr > td, .td > .table > .tbody > .tr > .td
 .cbi-section-table .cbi-section-table-titles .cbi-section-table-cell
 {
     width: auto !important;
-    background-color: #1e1e1f
+    background-color: #333
 }
 
 .td.cbi-section-actions
@@ -976,7 +979,7 @@ ul li .cbi-input-checkbox
 
 .cbi-value-field > ul > li .ifacebadge
 {
-    background-color: #eee;
+    background-color: #222;
     margin-left: 0.4rem;
     margin-top: -0.5rem;
 }
@@ -1723,7 +1726,8 @@ table>tbody>tr>td, table>tfoot>tr>td, table>thead>tr>td
 
 .cbi-section-table-row > .cbi-value-field .cbi-input-select, .cbi-section-table-row > .cbi-value-field .cbi-input-text, .cbi-section-table-row > .cbi-value-field .cbi-input-password, .cbi-section-table-row > .cbi-value-field .cbi-dropdown
 {
-    width: 100%;
+	width: 6rem;
+	padding-left: 0.5em;
 }
 
 .cbi-section-table-row > .cbi-value-field [data-dynlist] > input, .cbi-section-table-row > .cbi-value-field input.cbi-input-password
@@ -2096,11 +2100,12 @@ h2
     color: #ccc;
     border-radius: .375rem;
     background: #333333;
+    box-shadow: 0 0 2rem 0 rgba(136,152,170,.15);
 }
 
 #cbi-dropbear h2, #cbi-dropbear .cbi-map-descr, #cbi-dropbear .cbi-map-descr abbr, #cbi-rc h2, #cbi-rc .cbi-map-descr, #cbi-distfeedconf h2, #cbi-distfeedconf .cbi-map-descr, #cbi-customfeedconf h2, #cbi-customfeedconf .cbi-map-descr, #cbi-download h2, #cbi-filelist h2
 {
-    color: #32325d!important;
+    color: #ccc!important;
 }
 
 h3
@@ -2147,7 +2152,7 @@ fieldset
     box-shadow: 0 0 2rem 0 rgba(136,152,170,.15);
     -webkit-overflow-scrolling: touch;
 }
- */  div.cbi-section, fieldset {
+ div.cbi-section, fieldset {
  margin: 20px 0;
  padding: 1rem;
  border: 1px;
@@ -2159,8 +2164,6 @@ fieldset
  overflow-x: hidden;
  overflow-y: hidden;
  border-radius: 4px;
- background-color: #eee ;
- box-shadow: 0px 0px 0px 0px #eee, 0px 0px 10px 0px #eee, 0px 0px 5px rgba(0,0,0,0);
 }
 
 .cbi-map-descr+div.cbi-section, .cbi-map-descr+fieldset
@@ -2195,7 +2198,7 @@ fieldset.cbi-section p
     background-color: #444;
     margin-bottom: 0rem;
     letter-spacing: 0.1rem;
-    color: #ccc;
+    color: #eee;
     font-weight: bold;
 }
 
@@ -2210,7 +2213,7 @@ table > tbody > tr > td, table > tfoot > tr > td, table > thead > tr > td
 {
     font-size: .8125rem;
     white-space: nowrap;
-    color: #bbb;
+    color: #eee;
     padding: 0.75rem;
     padding-right: 1.5rem;
     padding-left: 1.5rem;
@@ -2247,7 +2250,7 @@ table > tbody > tr:first-child > td, table > tfoot > tr:first-child > td, table 
 
 fieldset > table > tbody > tr:nth-of-type(2n)
 {
-    background-color: #333;
+    background-color: #444;
 }
 
 /* fix multiple table */
@@ -2274,8 +2277,7 @@ td > table > tbody > tr > td
 
 /* button style */
 
-.cbi-button
-{
+.btn, .cbi-button {
     -webkit-appearance: none;
     text-transform: uppercase;
     height: auto;
@@ -2298,7 +2300,11 @@ td > table > tbody > tr > td
     user-select: none;
     font-size: .8125rem;
     width: auto !important;
+    webkit-box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+    border-radius: 0.2rem;
     line-height: 1em;
+    
     color: #ccc;
     background-color: #252526
 }
@@ -2378,7 +2384,7 @@ form.inline + form.inline, .cbi-button + .cbi-button
 {
     margin: 0.5rem 0rem;
     padding-left: 1rem;
-    background-color: #252526;
+    background-color: #444;
     border-radius: 0.375rem;
 }
 
@@ -2693,7 +2699,7 @@ select[multiple="multiple"]
 
 .cbi-tabmenu > li[class~="cbi-tab"]
 {
-    background-color: #fb6340;
+    background-color: #444;
 }
 
 .cbi-tabmenu > li[class~="cbi-tab"] > a
@@ -2741,7 +2747,7 @@ select[multiple="multiple"]
 
 .cbi-tabcontainer > .cbi-value:nth-of-type(2n)
 {
-    background-color: #f9f9f9;
+    background-color: #444;
 }
 
 .cbi-value-field, .cbi-value-description
@@ -2764,12 +2770,14 @@ div.cbi-value-field
     content: "\f059";
 }
 
-.cbi-value-description
-{
-    font-size: small;
-    opacity: 0.5;
-    padding: 0.5rem;
+.cbi-value-description {
+	display: inline; 
+	font-size: small;
+	opacity: .5;
+	padding: .5rem
 }
+.cbi-value-description img { vertical-align: middle; }
+
 
 .cbi-value-title
 {
@@ -2874,7 +2882,7 @@ input[type="checkbox"]
 
 td > .ifacebadge
 {
-    background-color: #F0F0F0;
+    background-color: #444;
     font-size: 0.9rem;
 }
 
@@ -2895,7 +2903,8 @@ td > .ifacebadge
     padding: 0.8rem;
     font-size: 0.8rem;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: black;
+    color: #ccc;
+    background-color: #555;
 }
 
 #syslog
@@ -2905,7 +2914,7 @@ td > .ifacebadge
     padding: 1rem;
     font-size: small;
     color: #ccc;
-    background-color: #1e1e1e;
+    background-color: #555;
     border-radius: 0;
     border: none;
     outline: none;
@@ -2945,7 +2954,7 @@ td > .ifacebadge
 
 td > .ifacebadge, .td > .ifacebadge
 {
-    background-color: #e9ecef;
+    background-color: #1e1e1f;
     font-size: 0.9rem;
     border-radius: 0.2rem;
 }
@@ -3016,7 +3025,7 @@ td > .ifacebadge, .td > .ifacebadge
 {
     border: 1px solid #ccc;
     border-radius: 0.375rem;
-    background-color: #555;
+    background-color: #eee;
     display: inline-flex;
     flex-direction: column;
     line-height: 1.2em;
@@ -3113,7 +3122,7 @@ td > .ifacebadge, .td > .ifacebadge
 .cbi-value-field > ul > li .ifacebadge
 {
     font-size: 0.875rem;
-    background-color: #eee;
+    background-color: none;
     display: flex;
     align-items: center;
     margin-left: 0rem;
@@ -3565,7 +3574,6 @@ header > .container > .pull-right > *
     border: 0;
     border-radius: .375rem;
     background: none;
- box-shadow: 0 0 .5rem 0 rgba(0,0,0,0.35)  overflow-x: auto;
     overflow-y: hidden;
 }
 
@@ -3613,7 +3621,19 @@ header > .container > .pull-right > *
 {
     display: none;
 }
-
+.node-system-packages > .main .cbi-section-node:first-child .cbi-value-last>div {
+	border: 1px solid #ddd !important;
+	width: 100% !important;
+	background-color: #aaa !important;
+	height: 1.4rem !important;
+	border-radius: 0.45rem !important;
+	margin: 0.5rem 0!important;
+	overflow: hidden
+}
+.node-system-packages>.main .cbi-section-node:first-child .cbi-value-last>div>div {
+	border-right: 0 !important;
+	background-color: #666 !important
+}
 /* fix network firewall*/
 .node-network-firewall > .main .cbi-section-table-row > .cbi-value-field .cbi-input-select
 {
