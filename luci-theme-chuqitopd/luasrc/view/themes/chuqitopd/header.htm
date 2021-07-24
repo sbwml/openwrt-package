@@ -193,7 +193,7 @@
 	math.randomseed(os.time())
 	
 	local bgcount = 0
-	for f in ipairs(glob("/www/luci-static/opentopd/img/*")) do
+	for f in ipairs(glob("/www/luci-static/chuqitopd/img/*")) do
 		bgcount = bgcount + 1
 	end
 	
@@ -278,9 +278,7 @@
                 </div>
             </header>
 		<div class="darkMask"></div>
-		<% if bgcount > 0 then %>
 		<div class="login-bg" style="background-image:url(<%=media%>/img/bg1.jpg)"></div>
-		<% end %>
 		<div id="maincontent">
 			<div class="container">
 				<%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
