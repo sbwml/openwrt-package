@@ -278,7 +278,9 @@
                 </div>
             </header>
 		<div class="darkMask"></div>
-		<div class="login-bg" style="background-image:url(<%=media%>/img/bg1.jpg)"></div>
+		<% if bgcount > 0 then %>
+		<div class="login-bg" style="background-image:url(<%=media%>/img/bg<%=math.random(1,bgcount)%>.jpg)"></div>
+		<% end %>
 		<div id="maincontent">
 			<div class="container">
 				<%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
