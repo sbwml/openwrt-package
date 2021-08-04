@@ -8,7 +8,7 @@ function index()
     end
 
     if nixio.fs.access('/usr/bin/ssr-redir') then
-        entry({'admin', 'services', 'cssr'}, alias('admin', 'services', 'cssr', 'client'), _('Hello World'), 0).dependent = true -- 首页
+        entry({'admin', 'services', 'cssr'}, alias('admin', 'services', 'cssr', 'client'), _('bywall'), 0).dependent = true -- 首页
         entry({'admin', 'services', 'cssr', 'client'}, cbi('cssr/client'), _('SSR Client'), 10).leaf = true -- 基本设置
         entry({'admin', 'services', 'cssr', 'servers'}, cbi('cssr/servers'), _('Severs Nodes'), 11).leaf = true -- 服务器节点
         entry({'admin', 'services', 'cssr', 'servers'}, arcombine(cbi('cssr/servers'), cbi('cssr/client-config')), _('Severs Nodes'), 11).leaf = true -- 编辑节点

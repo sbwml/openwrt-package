@@ -26,7 +26,7 @@ uci set dhcp.lan.ra_default='1'
 uci set dhcp.lan.force='1'
 uci commit dhcp
 #uci set network.@globals[0].ula_prefix=''
-uci set network.@wan[0].mtu=1400
+uci set network.@wan[0].mtu=1460
 uci commit network
 uci set upnpd.@upnpd[0].enabled='0'
 uci set upnpd.@upnpd[0].igdv1='1'
@@ -70,20 +70,6 @@ sed -i '/option disabled/d' /etc/config/wireless
 sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
 wifi up
 
-# Add ipsec iptable rules to allow ipsec client access router
-sed -i '/^.*--pol ipsec.*/d' /etc/firewall.user
- if [ -x /etc/init.d/ipsecvpn ]; then
- echo "iptables -D FORWARD  -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -D FORWARD  -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -D INPUT -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -D OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
-
- echo "iptables -I FORWARD  -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -I FORWARD  -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -I INPUT -m policy --dir in --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
- echo "iptables -I OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT" >> /etc/firewall.user
-fi
-
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
 echo "DISTRIB_REVISION='R21.7.1.100'" >> /etc/openwrt_release
 cat /etc/openwrt_release1 >> /etc/openwrt_release
@@ -96,6 +82,15 @@ echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
 echo 'hsts=0' > /root/.wgetrc
 
-rm -rf /tmp/luci-modulecache/
-rm -f /tmp/luci-indexcache
+#禁用某些可能会自启动且用不上的依赖包服务
+/etc/init.d/php7-fastcgi disable 2>/dev/null
+/etc/init.d/php7-fpm disable 2>/dev/null
+/etc/init.d/softethervpnbridge disable 2>/dev/null
+/etc/init.d/softethervpnserver disable 2>/dev/null
+/etc/init.d/softethervpnclient disable 2>/dev/null
+/etc/init.d/haproxy disable 2>/dev/null
+/etc/init.d/kcptun disable 2>/dev/null
+for p in `ls -l /etc/init.d | awk '/--/{print $NF}'`; do chmod +x /etc/init.d/$p; done
+rm -rf /tmp/luci-*
+
 exit 0
