@@ -67,6 +67,8 @@ gen_config_file() {
             re_type="nat"
         fi
     fi
+    
+    [[ "$stype" == "csocks" ]] && hostip=$(uci_get_by_name $1 server)
     lua /usr/share/cssr/genconfig_${stype}.lua ${server_obj} ${re_type} ${port} ${hostip} >${config_file}
     sed -i 's/\\//g' $config_file
 
@@ -89,6 +91,7 @@ killall -q -9 ssr-redir
 killall -q -9 v2ray
 killall -q -9 trojan
 killall -q -9 ipt2socks
+killall -q -9 csocks
 
 case "$(uci_get_by_name $GLOBAL_SERVER auth_enable)" in
 1 | on | true | yes | enabled) ARG_OTA="-A" ;;
@@ -111,6 +114,8 @@ elif [ "$stype" == "ssr" ]; then
     sscmd="/usr/bin/ssr-redir"
 elif [ "$stype" == "trojan" ]; then
     sscmd="/usr/sbin/trojan"
+elif [ "$stype" == "csocks" ]; then
+    sscmd="/usr/bin/csocks"
 fi
 
 local utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
@@ -121,6 +126,8 @@ elif [ "$utype" == "ssr" ]; then
     ucmd="/usr/bin/ssr-redir"
 elif [ "$utype" == "trojan" ]; then
     ucmd="/usr/sbin/trojan"
+elif [ "$utype" == "csocks" ]; then
+    ucmd="/usr/bin/csocks"
 fi
 
 if [ "$(uci_get_by_type global threads 0)" = "0" ]; then
@@ -139,9 +146,9 @@ fi
 redir_tcp=1
 local last_config_file=$CONFIG_FILE
 if [ "$stype" == "ssr" ]; then
-    local pid_file="/var/run/ssr-retcp.pid"
+    local pid_file="/var/run/ssr-rtcp.pid"
     for i in $(seq 1 $threads); do
-        $sscmd -c $last_config_file $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
+        $sscmd -c $last_config_file $ARG_OTA -f /var/run/ssr-rtcp_$i.pid >/dev/null 2>&1
     done
     echo "$(date "+%Y-%m-%d %H:%M:%S") SSR $threads 线程 已启动!" >>/tmp/cssr.log
 elif [ "$stype" == "v2ray" -o "$stype" == "ss" ]; then
@@ -152,6 +159,9 @@ elif [ "$stype" == "v2ray" -o "$stype" == "ss" ]; then
 elif [ "$stype" == "trojan" ]; then
     $sscmd -c $last_config_file >/dev/null 2>&1 &
     echo "$(date "+%Y-%m-%d %H:%M:%S") $($sscmd -V 2>&1 | head -1)  已启动!" >>/tmp/cssr.log
+elif [ "$stype" == "csocks" ]; then
+    $sscmd  $last_config_file >/dev/null 2>&1 &
+    echo "$(date "+%Y-%m-%d %H:%M:%S") $stype  已启动!" >>/tmp/cssr.log
 fi
 
 #转发UDP
@@ -175,6 +185,9 @@ if [ -n "$UDP_RELAY_SERVER" ]; then
     elif [ "$stype" == "trojan" ]; then
         $ucmd --config $last_config_file >/dev/null 2>&1 &
         ipt2socks -U -4 -b 0.0.0.0 -s 127.0.0.1 -p 10801 -l $(uci_get_by_name $UDP_RELAY_SERVER local_port) >/dev/null 2>&1 &
+    elif [ "$stype" == "csocks" ]; then
+        $ucmd $last_config_file >/dev/null 2>&1 &
+
     fi
 fi
 start_local

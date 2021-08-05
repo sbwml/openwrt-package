@@ -114,13 +114,13 @@ while [ "1" = "1" ]; do #这里是个死循环
 		icount=$(busybox ps -w | grep pdnsd | grep -v grep | wc -l)
 		if [ $icount -lt $pdnsd_process ]; then #如果进程挂掉就重启它
 			logger -t "$NAME" "pdnsd tunnel error.restart!"
-			if [ -f /var/run/pdnsd.pid ]; then
-				kill $(cat /var/run/pdnsd.pid) >/dev/null 2>&1
+			if [ -f /var/run/cpdnsd.pid ]; then
+				kill $(cat /var/run/cpdnsd.pid) >/dev/null 2>&1
 			else
 				kill -9 $(ps | grep pdnsd | grep -v grep | awk '{print $1}') >/dev/null 2>&1
 			fi
 
-			(/usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d &)
+			(/usr/sbin/pdnsd -c /var/etc/cpdnsd.conf -d &)
 		fi
 	fi
 done

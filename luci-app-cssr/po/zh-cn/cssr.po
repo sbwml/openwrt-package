@@ -587,6 +587,9 @@ msgstr "从谷歌测试"
 msgid "Baidu"
 msgstr "百度搜索"
 
+msgid "Reverse"
+msgstr "逆序"
+
 msgid "Connection OK"
 msgstr "访问正常"
 

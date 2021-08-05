@@ -126,7 +126,7 @@ gen_config_file() {
     local port=$(uci_get_by_name $1 local_port)
     [[ "$stype" == "vless" ]] &&  stype="v2ray"
 
-    [[ "$stype" == "csocks" ]] &&  stype="csocks"
+
     if [ "$stype" == "trojan" ]; then
         if [ "$re_type" == "udp" ]; then
             re_type="client"
@@ -142,7 +142,7 @@ gen_config_file() {
         mport=1090
         re_type="tcp"
     fi
-
+    [[ "$stype" == "csocks" ]] && hostip=$(uci_get_by_name $1 server)
     lua /usr/share/cssr/genconfig_${stype}.lua ${server_obj} ${re_type} ${port} ${hostip} ${mport} >${config_file}
     sed -i 's/\\//g' $config_file
 }
@@ -252,17 +252,17 @@ start_pdnsd() {
 
     [ -d /var/etc ] || mkdir -p /var/etc
 
-    if [ ! -d /var/pdnsd ]; then
-        mkdir -p /var/pdnsd
-        echo -ne "pd13\000\000\000\000" >/var/pdnsd/pdnsd.cache
-        chown -R nobody:nogroup /var/pdnsd
+    if [ ! -d /var/cpdnsd ]; then
+        mkdir -p /var/cpdnsd
+        echo -ne "pd13\000\000\000\000" >/var/cpdnsd/cpdnsd.cache
+        chown -R nobody:nogroup /var/cpdnsd
     fi
 
-    cat <<-EOF >/var/etc/pdnsd.conf
+    cat <<-EOF >/var/etc/cpdnsd.conf
 			global{
 			perm_cache=1024;
-			cache_dir="/var/pdnsd";
-			pid_file="/var/run/pdnsd.pid";
+			cache_dir="/var/cpdnsd";
+			pid_file="/var/run/cpdnsd.pid";
 			run_as="nobody";
 			server_ip=127.0.0.1;
 			server_port=5335;
@@ -286,7 +286,7 @@ start_pdnsd() {
 			purge_cache=off;
 			}
 		EOF
-    /usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d
+    /usr/sbin/pdnsd -c /var/etc/cpdnsd.conf -d
 }
 
 
@@ -384,7 +384,7 @@ start_redir() {
         ss | ssr)
             local pid_file="/var/run/ssr-rtcp.pid"
             local name="Shadowsocks"
-            [ "$type" == "ssr" ] && name="ShadowsocksR"
+            [ "$stype" == "ssr" ] && name="ShadowsocksR"
             for i in $(seq 1 $threads); do
                 $ccmd -c $last_config_file $ARG_OTA -f /var/run/ssr-rtcp_$i.pid >/dev/null 2>&1
             done
@@ -404,7 +404,7 @@ start_redir() {
             for i in $(seq 1 $threads); do
                 $ccmd $last_config_file >/dev/null 2>&1 &
             done
-            echo "$(date "+%Y-%m-%d %H:%M:%S") $type $threads 线程 已启动!" >>/tmp/cssr.log
+            echo "$(date "+%Y-%m-%d %H:%M:%S") $stype $threads 线程 已启动!" >>/tmp/cssr.log
             ;;
         esac
     else
@@ -434,8 +434,8 @@ start_redir() {
             esac
             local name="Shadowsocks"
             [ "$type" == "ssr" ] && name="ShadowsocksR"
-            pid_file="/var/run/ssr-reudp.pid"
-            $ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-reudp.pid >/dev/null 2>&1
+            pid_file="/var/run/ssr-rudp.pid"
+            $ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-rudp.pid >/dev/null 2>&1
             echo "$(date "+%Y-%m-%d %H:%M:%S") UDP TPROXY Relay: $name 已启动!" >>/tmp/cssr.log
             ;;
         v2ray | vless)
@@ -443,9 +443,8 @@ start_redir() {
             echo "$(date "+%Y-%m-%d %H:%M:%S") UDP TPROXY Relay: $($ccmd -version | head -1) 已启动!" >>/tmp/cssr.log
             ;;
         csocks)
-            $ucmd --config $last_config_file >/dev/null 2>&1 &
-            ipt2socks -U -4 -b 0.0.0.0 -s 127.0.0.1 -p 10802 -l $(uci_get_by_name $UDP_RELAY_SERVER local_port) >/dev/null 2>&1 &
-            echo "$(date "+%Y-%m-%d %H:%M:%S") UDP TPROXY Relay: Trojan 已启动!" >>/tmp/cssr.log
+            $ucmd  $last_config_file >/dev/null 2>&1 &
+             echo "$(date "+%Y-%m-%d %H:%M:%S") UDP TPROXY Relay: csocks 已启动!" >>/tmp/cssr.log
             ;;	    
         trojan)
             $ucmd --config $last_config_file >/dev/null 2>&1 &
@@ -509,16 +508,16 @@ start_service() {
     [ $(uci_get_by_name $1 enable) = "0" ] && return 1
     let server_count=server_count+1
     if [ $server_count = 1 ]; then
-        if ! (iptables-save -t filter | grep SSR-SERVER-RULE >/dev/null); then
-            iptables -N SSR-SERVER-RULE && \
-            iptables -t filter -I INPUT -j SSR-SERVER-RULE
+        if ! (iptables-save -t filter | grep SSRC-SERVER-RULE >/dev/null); then
+            iptables -N SSRC-SERVER-RULE && \
+            iptables -t filter -I INPUT -j SSRC-SERVER-RULE
         fi
     fi
 
     gen_service_file $1 /var/etc/${NAME}_${server_count}.json
     /usr/bin/ssr-server -c /var/etc/${NAME}_${server_count}.json -u -f /var/run/ssr-server${server_count}.pid >/dev/null 2>&1
-    iptables -t filter -A SSR-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
-    iptables -t filter -A SSR-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+    iptables -t filter -A SSRC-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+    iptables -t filter -A SSRC-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
     return 0
 }
 
@@ -530,11 +529,11 @@ gen_serv_include() {
     fi
     extract_rules() {
         echo "*filter"
-        iptables-save -t filter | grep SSR-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
+        iptables-save -t filter | grep SSRC-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
         echo 'COMMIT'
     }
     cat <<-EOF >>$FWI
-		iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
+		iptables-save -c | grep -v "SSRC-SERVER" | iptables-restore -c
 		iptables-restore -n <<-EOT
 		$(extract_rules)
 		EOT
@@ -645,11 +644,11 @@ boot() {
 stop() {
     echo "stop"
     /usr/bin/cssr-rules -f
-    srulecount=$(iptables -L | grep SSR-SERVER-RULE | wc -l)
+    srulecount=$(iptables -L | grep SSRC-SERVER-RULE | wc -l)
     if [ $srulecount -gt 0 ]; then
-        iptables -F SSR-SERVER-RULE
-        iptables -t filter -D INPUT -j SSR-SERVER-RULE
-        iptables -X SSR-SERVER-RULE 2>/dev/null
+        iptables -F SSRC-SERVER-RULE
+        iptables -t filter -D INPUT -j SSRC-SERVER-RULE
+        iptables -X SSRC-SERVER-RULE 2>/dev/null
     fi
     if [ -z "$switch_server" ]; then
         kill -9 $(busybox ps -w | grep cssr-switch | grep -v grep | awk '{print $1}') >/dev/null 2>&1
@@ -657,7 +656,7 @@ stop() {
     if [ $(uci_get_by_type global monitor_enable) = 1 ]; then
         kill -9 $(busybox ps -w | grep cssr-monitor | grep -v grep | awk '{print $1}') >/dev/null 2>&1
     fi
-    killall -q -9 ss-redir ss-local obfs-local ssr-redir ssr-local ssr-server xray-plugin xray trojan microsocks ipt2socks dns2socks pdnsd
+    killall -q -9 ss-redir ss-local obfs-local ssr-redir ssr-local ssr-server xray-plugin xray trojan microsocks ipt2socks dns2socks pdnsd csocks
 
     if [ -f "/tmp/dnsmasq.d/dnsmasq-ssr.conf" ]; then
         rm -rf /tmp/dnsmasq.d/dnsmasq-ssr.conf /tmp/dnsmasq.ssr /tmp/dnsmasq.oversea

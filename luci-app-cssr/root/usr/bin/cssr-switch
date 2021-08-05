@@ -60,12 +60,12 @@ test_proxy() {
     ret=$(ping -c 3 $servername | grep 'loss' | awk -F ',' '{ print $3 }' | awk -F "%" '{ print $1 }')
     [ -z "$ret" ] && return 1
     [ "$ret" -gt "50" ] && return 1
-    ipset add ss_spec_wan_ac $servername 2>/dev/null
+    ipset add cssr_wan_ac $servername 2>/dev/null
     ret=$?
     /usr/bin/ssr-check $servername $serverport $switch_time
     local ret2=$?
     if [ "$ret" = "0" ]; then
-        ipset del ss_spec_wan_ac $servername 2>/dev/null
+        ipset del cssr_wan_ac $servername 2>/dev/null
     fi
     if [ "$ret2" = "0" ]; then
         return 0
@@ -82,12 +82,12 @@ search_proxy() {
     [ "$1" = "$CURRENT_SERVER" ] && return 0
     local servername=$(uci_get_by_name $1 server)
     local serverport=$(uci_get_by_name $1 server_port)
-    ipset add ss_spec_wan_ac $servername 2>/dev/null
+    ipset add cssr_wan_ac $servername 2>/dev/null
     ret=$?
     /usr/bin/ssr-check $servername $serverport $switch_time
     local ret2=$?
     if [ "$ret" = "0" ]; then
-        ipset del ss_spec_wan_ac $servername 2>/dev/null
+        ipset del cssr_wan_ac $servername 2>/dev/null
     fi
     if [ "$ret2" = "0" ]; then
         server_locate=$server_count
