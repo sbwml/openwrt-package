@@ -1,14 +1,15 @@
--- Copyright (C) 2018 jerrykuku <jerrykuku@qq.com>
--- Licensed to the public under the GNU General Public License v3.
 module('luci.controller.cssr', package.seeall)
-
+local fs=require"nixio.fs"
+local http=require"luci.http"
+CALL=luci.sys.call
+EXEC=luci.sys.exec
 function index()
     if not nixio.fs.access('/etc/config/cssr') then
         return
     end
 
     if nixio.fs.access('/usr/bin/ssr-redir') then
-        entry({'admin', 'services', 'cssr'}, alias('admin', 'services', 'cssr', 'client'), _('bywall'), 0).dependent = true -- 首页
+        entry({'admin', 'services', 'cssr'}, alias('admin', 'services', 'cssr', 'client'), _('Bywall'), 0).dependent = true -- 首页
         entry({'admin', 'services', 'cssr', 'client'}, cbi('cssr/client'), _('SSR Client'), 10).leaf = true -- 基本设置
         entry({'admin', 'services', 'cssr', 'servers'}, cbi('cssr/servers'), _('Severs Nodes'), 11).leaf = true -- 服务器节点
         entry({'admin', 'services', 'cssr', 'servers'}, arcombine(cbi('cssr/servers'), cbi('cssr/client-config')), _('Severs Nodes'), 11).leaf = true -- 编辑节点
@@ -28,7 +29,7 @@ function index()
         entry({'admin', 'services', 'cssr', 'server'}, arcombine(cbi('cssr/server'), cbi('cssr/server-config')), _('SSR Server'), 20).leaf = true -- 服务端
     end
 
-    entry({'admin', 'services', 'cssr', 'log'}, form('cssr/log'), _('Log'), 30).leaf = true -- 日志
+    entry({'admin', 'services', 'cssr', 'log'}, cbi('cssr/log'), _('Log'), 30).leaf = true -- 日志
     entry({"admin","services","cssr","status"},call("status"))
 
     entry({"admin","services","cssr","check"},call("check"))
@@ -81,7 +82,7 @@ function get_subscribe()
         uci:set(name, '@server_subscribe[0]', 'filter_words', filter_words)
         uci:set_list(name, '@server_subscribe[0]', 'subscribe_url', cjson.parse(subscribe_url))
         uci:commit(name)
-        luci.sys.exec('/usr/bin/lua /usr/share/cssr/subscribe.lua >/www/check_update.htm 2>/dev/null &')
+       EXEC('/usr/bin/lua /usr/share/cssr/subscribe.lua >/www/check_update.htm 2>/dev/null &')
         e.error = 0
     else
         e.error = 1
@@ -139,7 +140,7 @@ function change_node()
             uci:set('cssr', '@global[0]', 'v2ray_flow', '1')
         end
         uci:commit('cssr')
-        luci.sys.call('/etc/init.d/cssr restart >/www/restartlog.htm 2>&1')
+        CALL('/etc/init.d/cssr restart >/www/restartlog.htm 2>&1')
         e.status = true
     end
     luci.http.prepare_content('application/json')
@@ -170,13 +171,13 @@ function act_status()
     math.randomseed(os.time())
     local e = {}
     -- 全局服务器
-    e.global = luci.sys.call('busybox ps -w | grep cssr_t | grep -v grep >/dev/null') == 0
+    e.global = CALL('busybox ps -w | grep cssr_t | grep -v grep >/dev/null') == 0
     -- 检测PDNSD状态
-    e.pdnsd = luci.sys.call('pidof pdnsd >/dev/null') == 0
+    e.pdnsd = CALL('pidof pdnsd >/dev/null') == 0
     -- 检测游戏模式状态
-    e.game = luci.sys.call('busybox ps -w | grep cssr_u | grep -v grep >/dev/null') == 0
+    e.game = CALL('busybox ps -w | grep cssr_u | grep -v grep >/dev/null') == 0
     -- 检测Socks5
-    e.socks5 = luci.sys.call('busybox ps -w | grep cssr_s | grep -v grep >/dev/null') == 0
+    e.socks5 = CALL('busybox ps -w | grep cssr_s | grep -v grep >/dev/null') == 0
     luci.http.prepare_content('application/json')
     luci.http.write_json(e)
 end
@@ -260,14 +261,14 @@ function refresh()
 
     if set == 'gfw_data' then
         refresh_cmd = 'wget-ssl --no-check-certificate https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt -O /tmp/gfw.b64'
-        sret = luci.sys.call(refresh_cmd .. ' 2>/dev/null')
+        sret = CALL(refresh_cmd .. ' 2>/dev/null')
         if sret == 0 then
-            luci.sys.call('/usr/bin/cssr-gfw')
-            icount = luci.sys.exec('cat /tmp/gfwnew.txt | wc -l')
+            CALL('/usr/bin/cssr-gfw')
+            icount =EXEC('cat /tmp/gfwnew.txt | wc -l')
             if tonumber(icount) > 1000 then
-                oldcount = luci.sys.exec('cat /etc/cssr/gfw_list.conf | wc -l')
+                oldcount =EXEC('cat /etc/cssr/gfw_list.conf | wc -l')
                 if tonumber(icount) ~= tonumber(oldcount) then
-                    luci.sys.exec('cp -f /tmp/gfwnew.txt /etc/cssr/gfw_list.conf')
+                   EXEC('cp -f /tmp/gfwnew.txt /etc/cssr/gfw_list.conf')
                     retstring = tostring(math.ceil(tonumber(icount) / 2))
                 else
                     retstring = '0'
@@ -275,18 +276,18 @@ function refresh()
             else
                 retstring = '-1'
             end
-            luci.sys.exec('rm -f /tmp/gfwnew.txt ')
+           EXEC('rm -f /tmp/gfwnew.txt ')
         else
             retstring = '-1'
         end
     elseif set == 'ip_data' then
         refresh_cmd = "wget-ssl -O- 'https://ispip.clang.cn/all_cn.txt' > /tmp/china_ssr.txt 2>/dev/null"
-        sret = luci.sys.call(refresh_cmd)
-        icount = luci.sys.exec('cat /tmp/china_ssr.txt | wc -l')
+        sret = CALL(refresh_cmd)
+        icount =EXEC('cat /tmp/china_ssr.txt | wc -l')
         if sret == 0 and tonumber(icount) > 1000 then
-            oldcount = luci.sys.exec('cat /etc/cssr/china_ssr.txt | wc -l')
+            oldcount =EXEC('cat /etc/cssr/china_ssr.txt | wc -l')
             if tonumber(icount) ~= tonumber(oldcount) then
-                luci.sys.exec('cp -f /tmp/china_ssr.txt /etc/cssr/china_ssr.txt')
+               EXEC('cp -f /tmp/china_ssr.txt /etc/cssr/china_ssr.txt')
                 retstring = tostring(tonumber(icount))
             else
                 retstring = '0'
@@ -294,28 +295,28 @@ function refresh()
         else
             retstring = '-1'
         end
-        luci.sys.exec('rm -f /tmp/china_ssr.txt ')
+       EXEC('rm -f /tmp/china_ssr.txt ')
     else
         local need_process = 0
         refresh_cmd = 'wget-ssl --no-check-certificate -O - https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt > /tmp/adnew.conf'
         need_process = 1
-        sret = luci.sys.call(refresh_cmd .. ' 2>/dev/null')
+        sret = CALL(refresh_cmd .. ' 2>/dev/null')
         if sret == 0 then
             if need_process == 1 then
-                luci.sys.call('/usr/bin/cssr-ad')
+                CALL('/usr/bin/cssr-ad')
             end
-            icount = luci.sys.exec('cat /tmp/ad.conf | wc -l')
+            icount =EXEC('cat /tmp/ad.conf | wc -l')
             if tonumber(icount) > 1000 then
                 if nixio.fs.access('/etc/cssr/ad.conf') then
-                    oldcount = luci.sys.exec('cat /etc/cssr/ad.conf | wc -l')
+                    oldcount =EXEC('cat /etc/cssr/ad.conf | wc -l')
                 else
                     oldcount = 0
                 end
                 if tonumber(icount) ~= tonumber(oldcount) then
-                    luci.sys.exec('cp -f /tmp/ad.conf /etc/cssr/ad.conf')
+                   EXEC('cp -f /tmp/ad.conf /etc/cssr/ad.conf')
                     retstring = tostring(math.ceil(tonumber(icount)))
                     if oldcount == 0 then
-                        luci.sys.call('/etc/init.d/dnsmasq restart')
+                        CALL('/etc/init.d/dnsmasq restart')
                     end
                 else
                     retstring = '0'
@@ -323,7 +324,7 @@ function refresh()
             else
                 retstring = '-1'
             end
-            luci.sys.exec('rm -f /tmp/ad.conf')
+           EXEC('rm -f /tmp/ad.conf')
         else
             retstring = '-1'
         end

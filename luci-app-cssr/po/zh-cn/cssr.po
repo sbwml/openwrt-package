@@ -13,6 +13,9 @@ msgstr "启用"
 msgid "Disable"
 msgstr "停用"
 
+msgid "Clear Logg"
+msgstr "清除日志"
+
 msgid "Log"
 msgstr "日志"
 
@@ -32,7 +35,7 @@ msgid "Global Server"
 msgstr "全局服务器"
 
 msgid "cssr SOCK5 Proxy is running"
-msgstr "cssr SOCK5代理运行中"
+msgstr "SOCK5代理运行中"
 
 msgid "UDP Relay Server"
 msgstr "UDP中继服务器"
@@ -614,6 +617,17 @@ msgstr "导入配置信息"
 msgid "Import"
 msgstr "导入"
 
+msgid "Baidu connection"
+msgstr "百度链接"
+
+msgid "Google connection"
+msgstr "谷歌链接"
+
+msgid "Github connection"
+msgstr "Github链接"
+
+msgid "Youtube connection"
+msgstr "Youtube链接"
 
 msgid "Configuration Succeeded"
 msgstr "配置信息成功"

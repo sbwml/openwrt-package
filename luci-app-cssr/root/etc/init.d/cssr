@@ -13,14 +13,12 @@ STOP=15
 
 SERVICE_DAEMONIZE=1
 NAME=cssr
-VAR=/var/etc/cssr
-FWI=$(uci -q get firewall.$NAME.path) || FWI=$VAR.include
 EXTRA_COMMANDS=rules
 
 #定义配置文件名称
-CONFIG_FILE=$VAR_t.json
-CONFIG_UDP_FILE=$VAR_u.json
-CONFIG_SOCK5_FILE=$VAR_s.json
+CONFIG_FILE=/var/etc/${NAME}_t.json
+CONFIG_UDP_FILE=/var/etc/${NAME}_u.json
+CONFIG_SOCK5_FILE=/var/etc/${NAME}_s.json
 CRON_FILE=/etc/crontabs/root
 
 #定义可执行文件路径
@@ -53,29 +51,22 @@ uci_get_by_type() {
     echo ${ret:=$3}
 }
 
-GLOBAL_SERVER=$(uci_get_by_type global global_server)
-gfw_mode=$(uci_get_by_type global gfw_mode 0)
 run_mode=$(uci_get_by_type global run_mode)
 is_xray=$(uci_get_by_type global use_xray)
 
 #查找可执行文件
 find_bin() {
-	ret=
-	case $1 in
-		ss)ret=$(which ss-redir);;
-		ss-local)ret=$(which ss-local);;
-		ss-server)ret=$(which ss-server);;
-		ssr)ret=$(which ssr-redir);;
-		ssr-local)ret=$(which ssr-local);;
-		ssr-server)ret=$(which ssr-server);;
-		csocks) ret=$(which csocks);;
-		vmess|v2ray|vless)ret=$(which xray);;
-		trojan)ret=$(which trojan-plus);;
-		naiveproxy)ret=$(which naive);;
-		socks5|tun)ret=$(which redsocks2);;
-	esac
-	echo $ret
-	
+    case "$1" in
+    ss) ret="ss-redir" ;;
+    ss-local) ret="ss-local" ;;
+    ssr) ret="ssr-redir" ;;
+    ssr-local) ret="ssr-local" ;;
+    ssr-server) ret="ssr-server" ;;
+    csocks) ret="csocks" ;;
+    v2ray | vless) ret="xray" ;;
+    trojan) ret="trojan" ;;
+    esac
+    echo $(find /usr -perm /+x -type f -name $ret)
 }
 
 #添加定时执行脚本
@@ -358,25 +349,32 @@ start_redir() {
     #deal kcp
     local kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
     if [ $kcp_enable = "1" ]; then
-        ccmd=$(which kcptun-client) || ccmd=0
-       [ ! $ccmd ] && log "Main Node      : Can't find KCPTUN program, start failed!" && return 1
-       [ $($ccmd -v 2>/dev/null | grep kcptun | wc -l) = 0 ] && return 1
+        [ ! -f "/usr/bin/kcptun-client" ] && return 1
+
+        local kcp_str=$(/usr/bin/kcptun-client -v | grep kcptun | wc -l)
+        [ "0" = $kcp_str ] && return 1
         local kcp_port=$(uci_get_by_name $GLOBAL_SERVER kcp_port)
         local server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
         local password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
         local kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
-        [ "$password" ] && password="--key "${password}
-        service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
+        [ "$password" != "" ] && password="--key "${password}
+        service_start /usr/bin/kcptun-client \
+        -r $kcp_server:$kcp_port \
+        -l :$server_port $password $kcp_param
         kcp_enable_flag=1
     fi
 
     gen_config_file $GLOBAL_SERVER 0 0
     local stype=$(uci_get_by_name $GLOBAL_SERVER type)
     ccmd=$(find_bin $stype)
-    [ ! $ccmd ] && log "Main Node      : Can't find $(echo $ttype | tr a-z A-Z) program, start failed!" && return 1
 
-    threads=$(uci_get_by_type global threads 0)
-    [ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
+    
+
+    if [ "$(uci_get_by_type global threads 0)" = "0" ]; then
+        threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
+    else
+        threads=$(uci_get_by_type global threads)
+    fi
     #转发TCP
     redir_tcp=1
     scount=$(count_shunt)
@@ -406,7 +404,7 @@ start_redir() {
             for i in $(seq 1 $threads); do
                 $ccmd $last_config_file >/dev/null 2>&1 &
             done
-            echo "$(date "+%Y-%m-%d %H:%M:%S") $($ccmd 2>&1 | head -1) $threads 线程 已启动!" >>/tmp/cssr.log
+            echo "$(date "+%Y-%m-%d %H:%M:%S") $type $threads 线程 已启动!" >>/tmp/cssr.log
             ;;
         esac
     else
