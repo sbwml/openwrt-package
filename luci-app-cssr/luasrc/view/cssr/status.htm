@@ -2,6 +2,9 @@
 local dsp=require"luci.dispatcher"
 local uci=luci.model.uci.cursor()
 -%>
+<link rel="stylesheet" href="/luci-static/cssr/css/cssr.css?v=<%=math.random(1,100000)%>">
+<script src="/luci-static/cssr/jquery.min.js"></script>
+
 <style>
 .pure-g
 {
@@ -329,8 +332,6 @@ word-spacing:-.43em
  width: 36px;
 }
 </style>
-<link rel="stylesheet" href="/luci-static/cssr/css/cssr.css?v=<%=math.random(1,100000)%>">
-<script src="/luci-static/cssr/jquery.min.js"></script>
 
 <fieldset id="cssr_status_fieldset" class="cbi-section">
   <div class="pure-g status">
