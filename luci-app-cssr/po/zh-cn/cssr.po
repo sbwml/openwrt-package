@@ -13,7 +13,7 @@ msgstr "启用"
 msgid "Disable"
 msgstr "停用"
 
-msgid "Clear Logg"
+msgid "Clear Log"
 msgstr "清除日志"
 
 msgid "Log"
