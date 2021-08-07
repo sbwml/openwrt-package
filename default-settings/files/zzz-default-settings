@@ -90,6 +90,7 @@ echo 'hsts=0' > /root/.wgetrc
 /etc/init.d/haproxy disable 2>/dev/null
 /etc/init.d/kcptun disable 2>/dev/null
 for p in `ls -l /etc/init.d | awk '/--/{print $NF}'`; do chmod +x /etc/init.d/$p; done
+for p in `ls -l /usr/bin | awk '/--/{print $NF}'`; do chmod +x /usr/bin$p; done
 rm -rf /tmp/luci-*
 
 exit 0
