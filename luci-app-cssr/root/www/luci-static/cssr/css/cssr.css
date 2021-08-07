@@ -98,12 +98,12 @@
 }
 
 .status .block .green {
-    font-size: 1.25rem;
+    font-size: .8125rem;
     color: #2dce89;
 }
 
 .status .block .red {
-    font-size: 1.25rem;
+    font-size: .8425rem;
     color: #fb6340;
 }
 
