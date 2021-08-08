@@ -173,7 +173,8 @@ function act_status()
     -- 全局服务器
     e.global = CALL('busybox ps -w | grep cssr_t | grep -v grep >/dev/null') == 0
     -- 检测PDNSD状态
-    e.pdnsd = CALL('pidof pdnsd >/dev/null') == 0
+    -- e.pdnsd = CALL('pidof pdnsd >/dev/null') == 0
+    e.global = CALL('busybox ps -w | grep pdnsdc | grep -v grep >/dev/null') == 0
     -- 检测游戏模式状态
     e.game = CALL('busybox ps -w | grep cssr_u | grep -v grep >/dev/null') == 0
     -- 检测Socks5

@@ -78,7 +78,7 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	( . /etc/uci-defaults/luci-cssr ) && rm -f /etc/uci-defaults/luci-cssr
 	rm -rf /tmp/luci-indexcache
 	rm -rf /tmp/luci-modulecache/*
-	chmod 755 /usr/bin/c* >/dev/null 2>&1
+	chmod 755 /etc/init.d/cssr >/dev/null 2>&1
 	/etc/init.d/cssr enable >/dev/null 2>&1
 fi
 exit 0

@@ -176,9 +176,9 @@ if [ -n "$UDP_RELAY_SERVER" ]; then
         1 | on | true | yes | enabled) ARG_OTA="-A" ;;
         *) ARG_OTA="" ;;
         esac
-        pid_file="/var/run/ssr-reudp.pid"
+        pid_file="/var/run/ssr-rudp.pid"
         #echo  $ucmd >> /tmp/cssr.log
-        $ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-reudp.pid >/tmp/cssr.log 2>&1
+        $ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-rudp.pid >/tmp/cssr.log 2>&1
         #echo "$(date "+%Y-%m-%d %H:%M:%S") $($sscmd -version | head -1) UDP已启动!" >> /tmp/cssr.log
     elif [ "$utype" == "ss" -o "$utype" == "v2ray" ]; then
         $ucmd -config $last_config_file >/dev/null 2>&1 &
