@@ -171,14 +171,13 @@ function act_status()
     math.randomseed(os.time())
     local e = {}
     -- 全局服务器
-    e.global = CALL('busybox ps -w | grep cssr_t | grep -v grep >/dev/null') == 0
+    e.global = CALL('busybox ps -w | grep cssr_t | grep -v grep  >/dev/null ') == 0
     -- 检测PDNSD状态
-    -- e.pdnsd = CALL('pidof pdnsd >/dev/null') == 0
-    e.global = CALL('busybox ps -w | grep pdnsdc | grep -v grep >/dev/null') == 0
+    e.pdnsd = CALL('busybox ps -w | grep pdnsdc | grep -v grep  >/dev/null ') == 0
     -- 检测游戏模式状态
-    e.game = CALL('busybox ps -w | grep cssr_u | grep -v grep >/dev/null') == 0
+    e.game = CALL('busybox ps -w | grep cssr_u | grep -v grep  >/dev/null') == 0
     -- 检测Socks5
-    e.socks5 = CALL('busybox ps -w | grep cssr_s | grep -v grep >/dev/null') == 0
+    e.socks5 = CALL('busybox ps -w | grep cssr_s | grep -v grep  >/dev/null') == 0
     luci.http.prepare_content('application/json')
     luci.http.write_json(e)
 end

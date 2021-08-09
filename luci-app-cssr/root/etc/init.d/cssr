@@ -252,17 +252,17 @@ start_pdnsd() {
 
     [ -d /var/etc ] || mkdir -p /var/etc
 
-    if [ ! -d /var/pdnsd ]; then
-        mkdir -p /var/pdnsd
-        echo -ne "pd13\000\000\000\000" >/var/pdnsd/pdnsd.cache
-        chown -R nobody:nogroup /var/pdnsd
+    if [ ! -d /var/pdnsdc ]; then
+        mkdir -p /var/pdnsdc
+        echo -ne "pd13\000\000\000\000" >/var/pdnsd/pdnsdc.cache
+        chown -R nobody:nogroup /var/pdnsdc
     fi
 
     cat <<-EOF >/var/etc/pdnsdc.conf
 			global{
 			perm_cache=1024;
-			cache_dir="/var/pdnsd";
-			pid_file="/var/run/pdnsd.pid";
+			cache_dir="/var/pdnsdc";
+			pid_file="/var/run/pdnsdc.pid";
 			run_as="nobody";
 			server_ip=127.0.0.1;
 			server_port=5335;
