@@ -1,0 +1,9 @@
+#!/bin/sh
+
+uci batch <<-EOF
+	set luci.themes.ffpdboy=/luci-static/ffpdboy
+	set luci.main.mediaurlbase=/luci-static/ffpdboy
+	commit luci
+EOF
+rm -rf /tmp/luci-modulecache /tmp/luci-indexcache*
+exit 0

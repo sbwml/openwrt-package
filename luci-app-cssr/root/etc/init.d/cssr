@@ -508,16 +508,16 @@ start_service() {
     [ $(uci_get_by_name $1 enable) = "0" ] && return 1
     let server_count=server_count+1
     if [ $server_count = 1 ]; then
-        if ! (iptables-save -t filter | grep SSR-SERVER-RULE >/dev/null); then
-            iptables -N SSR-SERVER-RULE && \
-            iptables -t filter -I INPUT -j SSR-SERVER-RULE
+        if ! (iptables-save -t filter | grep CSSR-SERVER-RULE >/dev/null); then
+            iptables -N CSSR-SERVER-RULE && \
+            iptables -t filter -I INPUT -j CSSR-SERVER-RULE
         fi
     fi
 
     gen_service_file $1 /var/etc/${NAME}_${server_count}.json
     /usr/bin/ssr-server -c /var/etc/${NAME}_${server_count}.json -u -f /var/run/ssr-server${server_count}.pid >/dev/null 2>&1
-    iptables -t filter -A SSR-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
-    iptables -t filter -A SSR-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+    iptables -t filter -A CSSR-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+    iptables -t filter -A CSSR-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
     return 0
 }
 
@@ -529,11 +529,11 @@ gen_serv_include() {
     fi
     extract_rules() {
         echo "*filter"
-        iptables-save -t filter | grep SSR-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
+        iptables-save -t filter | grep CSSR-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
         echo 'COMMIT'
     }
     cat <<-EOF >>$FWI
-		iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
+		iptables-save -c | grep -v "CSSR-SERVER" | iptables-restore -c
 		iptables-restore -n <<-EOT
 		$(extract_rules)
 		EOT
@@ -644,11 +644,11 @@ boot() {
 stop() {
     echo "stop"
     /usr/bin/cssr-rules -f
-    srulecount=$(iptables -L | grep SSR-SERVER-RULE | wc -l)
+    srulecount=$(iptables -L | grep CSSR-SERVER-RULE | wc -l)
     if [ $srulecount -gt 0 ]; then
-        iptables -F SSR-SERVER-RULE
-        iptables -t filter -D INPUT -j SSR-SERVER-RULE
-        iptables -X SSR-SERVER-RULE 2>/dev/null
+        iptables -F CSSR-SERVER-RULE
+        iptables -t filter -D INPUT -j CSSR-SERVER-RULE
+        iptables -X CSSR-SERVER-RULE 2>/dev/null
     fi
     if [ -z "$switch_server" ]; then
         kill -9 $(busybox ps -w | grep cssr-switch | grep -v grep | awk '{print $1}') >/dev/null 2>&1

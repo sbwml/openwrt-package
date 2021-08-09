@@ -1,0 +1,3338 @@
+﻿/**	
+*	ffpdboy is a clean HTML5 theme for LuCI. It is based on luci-theme-material.
+*
+*	luci-theme-ffpdboy
+*	Copyright 2020-2021 sirpdboy <herboy2008@gmail.com@gmail.com
+*	
+*	luci-theme-material:
+*	Copyright 2015 Lutty Yang
+*
+*	luci-theme-bootstrap:
+*	Copyright 2008 Steven Barth <steven@midlink.org
+*	Copyright 2008-2016 Jo-Philipp Wich <jow@openwrt.org
+*	Copyright 2012 David Menting <david@nut-bolt.nl
+*	MUI:
+*	https://github.com/muicss/mui
+*
+*	Licensed to the public under the Apache License 2.0
+ */
+
+
+@import url("fonts.css?v=2");
+@import url("pure.min.css?v=1");
+
+a
+{
+    color: #e4eaec;
+    text-decoration: none;
+    background-color: transparent;
+}
+*::-webkit-scrollbar:hover {
+ background-color: rgba(100, 100, 100, .09);
+}
+ *::-webkit-scrollbar-thumb:vertical {
+ background: rgba(100, 100, 100, .5);
+ -webkit-border-radius: 100px;
+}
+ *::-webkit-scrollbar-thumb:vertical:active {
+ background: rgba(100, 100, 100, .61);
+ -webkit-border-radius: 100px;
+}
+ *::-webkit-scrollbar {
+ width: 0.6em !important;
+ overflow: visible;
+ border-radius: 4px;
+ -webkit-border-radius: 4px;
+}
+ *::-webkit-scrollbar-track {
+ opacity: 0;
+ -webkit-transition: all .5s;
+}
+ *::-webkit-scrollbar-thumb {
+ overflow: visible;
+ border-radius: 4px;
+ background: rgba(100, 100, 100, .2);
+}
+
+div#maincontent div.container table.table tbody#tableBody
+{
+    background-color: rgba(7,34,62,.4);
+}
+
+.table
+{
+    display: table;
+}
+
+.tr
+{
+    display: table-row;
+}
+
+.thead
+{
+    display: table-header-group;
+}
+
+.tbody
+{
+    display: table-row-group;
+}
+
+.tfoot
+{
+    display: table-footer-group;
+}
+
+.td, .th
+{
+    vertical-align: middle;
+    text-align: center;
+    display: table-cell;
+    padding: 12px;
+    line-height: 1.42857143;
+    border-top: 1px solid rgba(7,34,62,.4);
+    white-space: nowrap;
+}
+
+b, strong
+{
+    font-weight: bolder;
+    color: #eee;
+}
+
+.th
+{
+    font-weight: bold;
+}
+
+.table[width="33%"], .th[width="33%"], .td[width="33%"]
+{
+    width: 33%;
+}
+
+.table[width="100%"], .th[width="100%"], .td[width="100%"]
+{
+    width: 100%;
+}
+
+tr:nth-of-type(2n+1)
+{
+    background: rgba(50,50,50,.3);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.3) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+tr:nth-of-type(2n)
+{
+    background: rgba(50,50,50,.45);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.45) rgba(50,50,50,.4);
+    scrollbar-width: thin;
+}
+
+.cbi-button-up, .cbi-button-down, .cbi-value-helpicon, .showSide, .main > .loading > span
+{
+    font-family: 'ffpdboy', Roboto !important;
+    font-size: 10px;
+    speak: none;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+*
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6
+{
+    font-family: inherit;
+    ;
+    font-weight: 500;
+    line-height: 1.1;
+    color: white;
+    clear: both;
+}
+
+html
+{
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    font-size: 10pt;
+    margin: 0px;
+    padding: 0px;
+    /* For FireFox window */
+    scrollbar-color: rgba(238,238,238,.5) rgba(50,50,50,1);
+    scrollbar-width: thin;
+}
+
+body
+{
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    line-height: 150%;
+    color: #ffffff;
+    font-family: "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", "Helvetica Neue", "Helvetica", "Hiragino Sans GB";
+    background: url('../img/bg1.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    font-size: .875rem;
+    background-color: #666
+}
+
+html, body
+{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body div
+{
+    line-height: 150%;
+}
+
+a:hover
+{
+    color: #ff8534;
+}
+
+em
+{
+    font-style: normal !important;
+}
+
+select
+{
+    min-width: 20rem;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNTY1MzQ4MDM3OTIyIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjI1ODMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj4qIHsgdGV4dC1zaGFkb3c6IHRyYW5zcGFyZW50IDBweCAwcHggMHB4LCByZ2JhKDAsIDAsIDAsIDAuNSkgMHB4IDBweCAwcHggIWltcG9ydGFudDsgfQo8L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNMjAuNDggMjQ1Ljc2aDk4My4wNEw1MTIgNzc4LjI0eiIgcC1pZD0iMjU4NCIgZmlsbD0iIzcwNzA3MCI+PC9wYXRoPjwvc3ZnPg==') !important;
+    background-position: 96%;
+    background-size: 8px;
+    background-repeat: no-repeat
+}
+
+hr
+{
+    margin: 1rem 0;
+    border-color: #eee;
+    opacity: 0.1;
+}
+
+header, .main
+{
+    width: 100%;
+    position: absolute;
+}
+
+header
+{
+    height: 60px;
+    float: left;
+    position: fixed;
+    z-index: 2000;
+}
+
+footer
+{
+    text-align: right;
+    padding: 1rem;
+    color: #e1e3e4;
+    font-size: 0.875rem;
+    /*text-shadow: 0px 0px 2px #BBB;*/
+    display: block;
+    margin: 0 auto;
+    bottom: 0;
+    width: 100%;
+}
+
+footer a
+{
+    color: #e1e3e4;
+    text-decoration: none;
+}
+
+/* 脉冲效果
+#animation {
+	-webkit-animation:pulse 1s .2s ease both;
+	-moz-animation:pulse 1s .2s ease both;
+}*/
+@-webkit-keyframes pulse {
+0% {
+-webkit-transform:scale(1)
+}
+50% {
+-webkit-transform:scale(1.1)
+}
+100% {
+-webkit-transform:scale(1)
+}
+}
+@-moz-keyframes pulse {
+0% {
+-moz-transform:scale(1)
+}
+50% {
+-moz-transform:scale(1.1)
+}
+100% {
+-moz-transform:scale(1)
+}
+}
+
+.main
+{
+    top: 4rem;
+    bottom: 0rem;
+    position: relative;
+    height: 100%;
+    height: calc(100% - 4rem);
+}
+
+.main .loading
+{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: block;
+    background-color: rgb(44, 67, 91, .7);
+    top: 0;
+}
+
+.main .loading span
+{
+    display: block;
+    text-align: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 auto;
+    color: #ffffff;
+    font-size: 2.5rem;
+}
+
+.main .loading span .loading-img:before
+{
+    font-family: 'ffpdboy' !important;
+    content: "\e603";
+    color: #ff8534;
+}
+
+.main .loading span .loading-img
+{
+    animation: anim-rotate 1s infinite linear;
+    margin-right: 1rem;
+    display: inline-block;
+}
+ @keyframes anim-rotate {
+ 0% {
+ -webkit-transform: rotate(0);
+ -ms-transform: rotate(0);
+ transform: rotate(0);
+}
+ 100% {
+ -webkit-transform: rotate(360deg);
+ -ms-transform: rotate(360deg);
+ transform: rotate(360deg)
+}
+}
+
+.main-left
+{
+    float: left;
+    top: 4rem;
+    width: 13%;
+    width: calc(0% + 17rem);
+    height: 100%;
+    height: calc(100% - 5rem);
+    overflow-x: auto;
+    position: fixed;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/*右边宽度设置 */
+.main-right
+{
+    width: 85%;
+    width: calc(100% - 18rem);
+    float: right;
+    height: 100%;
+}
+
+.pull-right
+{
+    float: right;
+    margin-top: -40px;
+    margin-right: 10px;
+}
+
+.pull-right span
+{
+}
+
+.pull-left
+{
+    float: left;
+}
+
+header
+{
+    color: white;
+}
+
+header .container
+{
+    margin: 0;
+    padding: 0;
+}
+
+/*LOGO位置大小设置*/
+
+header > .container > .brand
+{
+    font-size: 2rem;
+    line-height: 4rem;
+    color: white;
+    cursor: default;
+    background: rgba(255, 255, 255, 0.15);
+    display: block;
+    width: 17rem;
+    padding-right: 10px;
+    height: 4rem;
+    text-align: center;
+    float: left;
+    font-weight: 4rem;
+    letter-spacing: 3px;
+}
+
+.brandMark:after
+{
+    content: "®";
+    font-size: 14px;
+    font-family: Tahoma;
+    position: absolute;
+    top: -10px;
+    font-weight: normal !important;
+}
+
+.danger
+{
+    background-color: #FA8072 !important;
+    color: black;
+}
+
+.warning
+{
+    background-color: #F0E68C !important;
+    color: black;
+}
+
+.success
+{
+    background-color: #64b5f6 !important;
+    color: black;
+}
+
+.errorbox, .alert-message
+{
+    margin: 2rem 0 0 0;
+    padding: 2rem;
+    border: 0;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1.5em;
+    font-family: inherit;
+    min-width: inherit;
+    overflow: auto;
+    border-radius: .375rem;
+    background-color: #eea236;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    color: #fff;
+}
+
+.error
+{
+    color: #d92323;
+}
+
+.alert-message h4
+{
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.alert-message *
+{
+    margin: .5rem 0;
+}
+
+#maincontent .container div:nth-child(1).alert-message.warning a
+{
+    font: inherit;
+    overflow: visible;
+    text-transform: none;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    min-width: 6rem;
+    padding: .5rem 1rem;
+    font-size: .875rem;
+    line-height: 1.42857143;
+    color: #fff;
+    background-color: #5F1313;
+    border-color: #5F1F13;
+    margin-top: 2rem;
+    text-decoration: inherit
+}
+
+/*menu */
+.main .main-left::-webkit-scrollbar {
+width:5px;
+height:1px
+}
+.main .main-left::-webkit-scrollbar-thumb {
+background-color:#f6f9fc
+}
+.main .main-left::-webkit-scrollbar-track {
+background-color:#fff
+}
+
+.main .main-left .nav li
+{
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.main .main-left .nav
+{
+    margin-top: 2rem;
+    font-size: 20px;
+}
+
+.main .main-left .nav li a
+{
+    color: white;
+    display: block;
+    margin: 0.1rem !important;
+}
+
+.main .main-left .nav li:nth-last-child(1)
+{
+    height: 40px;
+}
+
+.main .main-left .nav li
+{
+    padding: 0rem;
+    cursor: pointer;
+}
+
+.main.main-left.nav.slide
+{
+    padding: 0;
+}
+
+div.main div.main-left ul.nav li.slide a
+{ /* remove dashed line in firefox */
+    outline: none;
+}
+
+/*一级菜单字体颜色*/
+.main .main-left .nav .slide .menu
+{
+    display: block;
+    padding: .7rem 0 .7rem 1.5rem;
+    text-decoration: none;
+    cursor: default;
+    font-size: 1.3rem;
+    transition: all .2s;
+    text-shadow: 0px 1px 3px #222;
+    position: relative
+}
+
+/* 一级菜单背景条色 */
+.main .main-left .nav li.slide .menu::before, .main .main-left .nav li.slide .menu.active
+{
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fe7a00;
+    text-shadow: 0px 1px 3px #222;
+}
+
+.main .main-left .nav li:hover, .main .main-left .nav .slide .menu:hover
+{
+    color: #fe7a00;
+    cursor: hand;
+    text-shadow: 0px 1px 3px #222;
+}
+
+.main .main-left .nav .slide:hover
+{
+    background: none;
+}
+
+.main .main-left .nav .slide .slide-menu
+{
+    overflow: hidden;
+}
+
+.main .main-left .nav .slide .slide-menu li
+{
+    padding: 0.4rem;
+    position: relative;
+    margin: .5rem .0rem .0rem 2.5rem;
+    transition: all .2s;
+    font-size: 1.1rem
+}
+
+.main .main-left .nav .slide .slide-menu li a
+{
+    position: relative;
+    display: block;
+    color: white;
+    text-shadow: 0px 1px 3px #222;
+    vertical-align: middle;
+}
+
+.main .main-left .nav .slide .slide-menu li a:hover
+{
+    color: #ff8534;
+}
+
+.main .main-left .nav .slide .slide-menu .active a
+{
+    color: #ff8534;
+}
+
+.main .main-left .nav .slide .slide-menu li:hover
+{
+    color: #ff8534;
+}
+
+.main .main-left .nav .slide .slide-menu .active:hover
+{
+    color: #ff8534;
+    cursor: hand;
+}
+
+.main .main-left .nav .slide a:before
+{
+    display: inline-block;
+    top: -1px;
+    left: -10px;
+    position: relative;
+    vertical-align: middle;
+    display: inline-block;
+    font-family: "ffpdboy" !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    speak: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.main .main-left .nav li.slide .menu::after
+{
+    position: absolute;
+    right: .5rem;
+    top: .8rem;
+    font-family: 'ffpdboy' !important;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -moz-osx-font-smoothing: grayscale;
+    content: '\e20a';
+    transition: all .15s ease;
+    color: #eee;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    transition: all .3s
+}
+
+.main .main-left .nav li.slide .menu:hover a::after, .main .main-left .nav li.slide .menu.active a::after
+{
+    cursor: pointer;
+    color: #fe7a00;
+    width: 100%
+}
+
+.main .main-left .nav .slide .menu.active::before, .main .main-left .nav li.slide .menu:hover::after, .main .main-left .nav li.slide .menu.active::after
+{
+    color: #fe7a00;
+}
+
+.main .main-left .nav li.slide .menu.active::after
+{
+    -ms-transform: rotate(-180deg);
+    -webkit-transform: rotate(-180deg);
+    transform: rotate(-180deg);
+}
+
+/* 一级菜单指向背景 */
+.main .main-left .nav li.slide .menu:hover, .main .main-left .nav li.slide .menu.active
+{
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fe7a00;
+    text-shadow: 0px 1px 3px #222;
+}
+
+.main .main-left .nav li.slide .menu:hover a, .main .main-left .nav li.slide .menu.active a, .main .main-left .nav li.slide .menu:hover::before, .main .main-left .nav li.slide .menu.active::before
+{
+    color: #fe7a00 !important
+}
+
+.main .main-left .nav .slide a[data-title="Status"]:before
+{
+    content: "\e900";
+    top: -3px;
+    color: #41bdf5 !important;
+}
+
+.main .main-left .nav .slide a[data-title="System"]:before
+{
+    content: "\e902";
+    top: -3px;
+    color: #ff6600 !important;
+}
+
+.main .main-left .nav .slide a[data-title="Services"]:before
+{
+    content: "\e901";
+    top: -3px;
+    color: #C04DEF !important;
+}
+
+.main .main-left .nav .slide a[data-title="NAS"]:before
+{
+    content: "\e903";
+    top: -3px;
+    color: #1DA4F6 !important;
+}
+
+.main .main-left .nav .slide a[data-title="Control"]:before
+{
+    content: "\e909";
+    top: -3px;
+    color: #F25056 !important;
+}
+
+.main .main-left .nav .slide a[data-title="dns"]:before
+{
+    content: "\e90d";
+    top: -3px;
+    color: #FF9800!important;
+}
+
+.main .main-left .nav .slide a[data-title="VPN"]:before
+{
+    content: "\e908";
+    top: -3px;
+    color: #39EA49 !important;
+}
+
+.main .main-left .nav .slide a[data-title="Network"]:before
+{
+    content: "\e90a";
+    top: -3px;
+    color: #9F1FC1 !important;
+}
+
+.main .main-left .nav .slide a[data-title="Bandwidth Monitor"]:before
+{
+    content: "\e90b";
+    top: -3px;
+    color: #FAC536 !important;
+}
+
+.main .main-left .nav .slide a[data-title="Statistics"]:before
+{
+    content: "\e90e";
+    top: -3px;
+    color: #39EA49 !important;
+}
+
+.main .main-left .nav .slide a[data-title="QOS"]:before
+{
+    content: "\e90d";
+    top: -3px;
+    color: #f3a4b5!important;
+}
+
+.main .main-left .nav .slide a[data-title="Docker"]:before
+{
+    content: "\e906";
+    top: -3px;
+    color: #66CC00!important;
+}
+
+.main .main-left .nav li a[data-title="Logout"]:before
+{
+    content: "\e905";
+    color: #FD0004 !important;
+    display: inline-block;
+    top: -3px;
+    left: -7px;
+    position: relative;
+    vertical-align: middle;
+    display: inline-block;
+    font-family: "ffpdboy" !important;
+    -webkit-font-smoothing: antialiased;
+    background-color: transparent;
+}
+
+.main .main-left .nav li a[data-title="Logout"]
+{
+    padding-left: 1.3rem;
+    text-shadow: 0px 1px 3px #222;
+    line-height: 50px;
+    font-size: 1.4rem
+}
+
+.main .main-left .nav li a[data-title="Logout"]:hover
+{
+    color: #ff8534;
+}
+
+.main .main-left .nav .slide ul
+{
+    display: none;
+    list-style: dotted;
+}
+
+body[class*="node-"] .main .main-left .nav .slide .menu::before
+{
+    transition: transform 0.1s ease-in-out;
+}
+
+body[class*="node-"] .main .main-left .nav .slide .menu.active::before
+{
+    transition: transform 0.2s ease-in-out;
+}
+
+.main .main-left[style*="overflow: hidden"] .nav .slide .menu::before
+{
+    display: none;
+}
+
+ul
+{
+    line-height: normal;
+}
+
+li
+{
+    list-style-type: none;
+}
+
+#maincontent.container
+{
+    margin: 0 2rem 1rem 2rem;
+}
+
+h1
+{
+    font-size: 2rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* H2标题大小位置  */
+h2
+{
+    margin: 1rem 0 0 0;
+    font-size: 1.8rem;
+    padding: 1rem 2rem;
+    font-weight: bold;
+    border-radius: .375rem;
+    background: rgba(255, 255, 255, 0.15);
+    text-shadow: -1px 1px 0px #333;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 2px 5px 0 rgba(0,0,0,0.5);
+}
+
+h3
+{
+    font-size: 1.15rem;
+    width: 100%;
+    display: block;
+    margin-bottom: 0;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .05);
+    line-height: 1.5;
+    margin-bottom: 0rem;
+    letter-spacing: 0.1rem;
+    color: #eee;
+    font-weight: bold;
+    background: none;
+    transition: background .2s ease-in-out, border .2s ease-in-out, color .2s ease-in-out;
+}
+
+h4
+{
+}
+
+label
+{
+    display: inline-block;
+    padding: 0 10px;
+    vertical-align: middle;
+}
+
+fieldset
+{
+    margin: 1.25rem 0 0 0;
+    padding: 0;
+    border: 0;
+    font-weight: normal;
+    font-style: normal;
+    font-family: inherit;
+    min-width: inherit;
+    line-height: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    color: #eee;
+    font-size: 1.15rem;
+    border-radius: .375rem;
+    margin-bottom: 1rem;
+    position: relative;
+    background: rgba(50,50,50,.45);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.45) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.5);
+    -webkit-overflow-scrolling: touch
+}
+
+fieldset legend
+{
+    display: none !important
+}
+
+field setfieldset
+{
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none
+}
+
+field set.cbi-section p
+{
+    padding: 1em
+}
+
+.cbi-section h3:first-child, .panel-title
+{
+    font-size: 1.4rem;
+    letter-spacing: 0.1rem;
+    line-height: 1.4;
+    display: block;
+    font-weight: bold;
+    width: 100%;
+    border-radius: .25rem;
+    margin: 0;
+    padding: 1.25rem 2rem;
+    color: #ffffff;
+    color: var(--gray-dark);
+    text-shadow: 0px 1px 3px #222;/* background: rgba(50,50,50,.4);
+    For Firefox 
+    scrollbar-color: rgba(50,50,50,.4) rgba(50,50,50,.4);
+    scrollbar-width: thin;*/
+}
+
+table, .table
+{
+    border-spacing: 0;
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #999;
+}
+
+table tbody tr td, table tbody tr th, table tfoot tr td, table tfoot tr th, table thead tr td, table thead tr th, .table .tbody .tr .td, .table .tbody .tr .th, .table .tfoot .tr .td, .table .tfoot .tr .th, .table .thead .tr .td, .table .thead .tr .th
+{
+    font-size: 1rem;
+    white-space: nowrap;
+    color: #ffffff;
+    padding: 6px;
+    line-height: 1.5;
+    border-top: 1px solid rgb(7, 34, 62, .75);
+    white-space: nowrap;
+}
+
+.cbi-section-table-cell
+{
+    text-align: center;
+}
+
+.cbi-section-table-row
+{
+    text-align: center;
+}
+
+fieldset table tbody tr:nth-of-type(odd), fieldset .table .tbody .tr:nth-of-type(odd)
+{
+    background: rgba(50,50,50,.3);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.3) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+fieldset table tbody tr:nth-of-type(even), fieldset .table .tbody .tr:nth-of-type(even)
+{
+    background: rgba(50,50,50,.5);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.5) rgba(50,50,50,.5);
+    scrollbar-width: thin;
+}
+
+/* fix progress bar */
+#memfreediv, #memtotaldiv
+{
+    width: 100% !important;
+    height: 1.6rem !important;
+    line-height: 1.6rem !important;
+    border-radius: .25rem !important;
+    background-color: #fc8e2d !important
+}
+
+#memfreedivdiv, #memtotaldivdiv
+{
+    height: 100% !important;
+    background-color: #D1E4F0 !important;
+    float: right !important
+}
+
+#swaptotaldiv, #swapfreediv, #membuffdiv, #connsdiv
+{
+    width: 100% !important;
+    height: 1.6rem !important;
+    line-height: 1.6rem !important;
+    border-radius: .25rem !important;
+    float: right !important;
+    background-color: #D1E4F0 !important
+}
+
+#swaptotaldivdiv, #swapfreedivdiv, #connsdivdiv, #membuffdivdiv
+{
+    height: 100% !important;
+    background-color: #fc8e2d !important
+}
+
+#swaptotal div, #swapfree div, #swapcache div, #memfree div, #membuff div, #conns div, #memcache div, #memtotal div
+{
+    width: 100% !important;
+    border-color: #ccc !important;
+    height: 20px !important;
+    color: #76838f !important;
+}
+
+#swaptotal div div, #swapfree div div, #swapcache div div, #memfree div div, #membuff div div, #conns div div, #memcache div div, #memtotal div div
+{
+    height: 1.4rem !important;
+    background-color: rgb(100, 181, 246) !important;
+}
+
+/* fix multiple table */
+
+table table, .table .table
+{
+    border: none;
+}
+
+.cbi-value-field table, .cbi-value-field .table
+{
+    border: none;
+}
+
+td table tbody tr td, .td .table .tbody .tr .td
+{
+    border: none;
+}
+
+.cbi-value-field table tbody tr td, .cbi-value-field .table .tbody .tr .td
+{
+    border: none;
+}
+
+.cbi-value-field >*
+{
+    line-height: 1.4rem;
+}
+
+/* button style */
+
+.btn, .cbi-button
+{
+    min-width: 4rem; /* 登陆按钮宽度  */
+    min-height: 1.1rem;
+    padding: 0.8rem 1.5rem;
+    line-height: 1.2rem;
+    font-size: 1.2rem;
+    display: inline-block;
+    line-height: normal;
+    white-space: nowrap;
+    vertical-align: middle;
+    text-align: center;
+    cursor: pointer;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border-radius: .375rem;
+    width: auto !important;
+    -webkit-box-sizing: border-box;
+    border: .04rem solid #dcdcdc;
+    text-shadow: -1px 1px 0px #555;
+ box-sizing: border-box transition: box-shadow .3s, border .3s;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}
+
+input, optgroup, select, textarea
+{
+    font-family: inherit;
+    border: none;  /*无边框*/
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0
+}
+
+button, input
+{
+    overflow: visible
+}
+
+button, select
+{
+    text-transform: none
+}
+
+[type=button], [type=reset], [type=submit], button
+{
+    -webkit-appearance: button
+}
+[type=button]::-moz-focus-inner, [type=reset]::-moz-focus-inner, [type=submit]::-moz-focus-inner, button::-moz-focus-inner {
+border-style:none;
+padding:0
+}
+[type=button]:-moz-focusring, [type=reset]:-moz-focusring, [type=submit]:-moz-focusring, button:-moz-focusring {
+outline:1px dotted ButtonText
+}
+
+input, select
+{
+    background-color: rgba(255,255,255,0.45);
+    padding: .36rem .8rem;
+    color: #222;
+    font-size: .975rem;
+    transition: all .15s ease-in-out;
+    line-height: 1.5;
+    padding: .625rem .75rem;
+    border-radius: .25rem;
+    background-clip: padding-box;
+    outline: none;
+    margin: .25rem;
+    transition: box-shadow .3s, border .3s;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}
+
+select[multiple="multiple"]
+{
+    height: auto
+}
+
+/* input */
+.cbi-value input[type="password"], .cbi-value input[type="text"]
+{
+    min-width: 15rem;
+}
+
+/* select */
+.cbi-value-field .cbi-dropdown
+{
+    min-width: 15rem;
+}
+
+/* 设置输入框无框，立体阴影 */
+input:not([type]), input[type=text]:not(.browser-default), input[type=password]:not(.browser-default), input[type=email]:not(.browser-default), input[type=url]:not(.browser-default), input[type=time]:not(.browser-default), input[type=date]:not(.browser-default), input[type=datetime]:not(.browser-default), input[type=datetime-local]:not(.browser-default), input[type=tel]:not(.browser-default), input[type=number]:not(.browser-default), input[type=search]:not(.browser-default), textarea.materialize-textarea
+{
+    border: none;  /*无边框*/
+}
+
+.cbi-button-fieldadd
+{
+    border: 1px solid #64b5f6;
+    color: #ddd;
+    margin-top: -3px;
+}
+
+.cbi-button-fieldadd:hover
+{
+    background: #64b5f6;
+    color: #fff;
+}
+
+.cbi-button-link
+{
+    border: 1px solid #81c784;
+    background-image: linear-gradient(135deg, #63e1a6, #4e9666)!important;
+    color: #ddd;
+}
+
+.cbi-button-link:hover
+{
+    background-color: #81c784;
+    color: #fff !important;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-animation: pulse 1s .1s ease both;
+    -moz-animation: pulse 1s .1s ease both;
+}
+
+#cbi-firewall-zone .cbi-input-select, #cbi-network-switch_vlan .cbi-input-select
+{
+    min-width: 11rem;
+}
+
+#cbi-network-switch_vlan .cbi-input-text
+{
+    max-width: 3rem;
+}
+
+/* 登陆窗口输入下画线动画 */
+.focus-input
+{
+    position: absolute;
+    display: block;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.focus-input::before
+{
+    content: "";
+    display: block;
+    position: absolute;
+    top: 2.2rem;
+    left: 0;
+    width: 0;
+    height: 2px;
+    -webkit-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+    background: #FF8000;
+}
+
+select+.focus-input::before
+{
+    top: 2.12rem;
+}
+
+.node-main-login .focus-input::before
+{
+    top: 2.73rem;
+}
+
+input:focus + .focus-input::before, select:focus + .focus-input::before
+{
+    width: 100%;
+}
+
+/*  各种按钮背景立体  */
+
+.cbi-button-reset, .cbi-input-remove
+{
+    color: #ddd !important;
+    background-image: linear-gradient(135deg, #F0AD4E, #CC6600) !important;
+}
+
+.cbi-button-reset:hover, .cbi-input-remove:hover
+{
+    color: #fff !important;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-animation: pulse 1s .1s ease both;
+    -moz-animation: pulse 1s .1s ease both;
+}
+
+.cbi-input-find, .cbi-input-save, .cbi-button-add, .cbi-button-save, .cbi-button-find, .cbi-input-reload, .cbi-button-reload
+{
+    color: #ddd !important;
+    background-image: linear-gradient(135deg, #63e1a6, #4e9666)!important;
+}
+
+.cbi-input-find:hover, .cbi-input-save:hover, .cbi-button-add:hover, .cbi-button-save:hover, .cbi-button-find:hover, .cbi-input-reload:hover, .cbi-button-reload:hover
+{
+    color: #fff !important;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-animation: pulse 1s .1s ease both;
+    -moz-animation: pulse 1s .1s ease both;
+}
+
+.cbi-input-reset, .cbi-section-remove.cbi-button, .cbi-button-remove
+{
+    color: #ddd !important;
+    background-image: linear-gradient(135deg, #ff0000, #990000) !important;
+}
+
+.cbi-input-reset:hover, .cbi-section-remove.cbi-button:hover, .cbi-button-remove:hover
+{
+    color: #fff !important;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-animation: pulse 1s .1s ease both;
+    -moz-animation: pulse 1s .1s ease both;
+}
+
+.cbi-input-apply, .cbi-button-apply, .cbi-button-edit
+{
+    color: #ddd !important;
+    background-image: linear-gradient(135deg, #21bbfe, #2c6fd1) !important;
+}
+
+.cbi-input-apply:hover, .cbi-button-apply:hover, .cbi-button-edit:hover
+{
+    color: #fff !important;
+    -webkit-animation: pulse 1s .1s ease both;
+    -moz-animation: pulse 1s .1s ease both;
+}
+
+.a-to-btn
+{
+    text-decoration: none;
+}
+
+/* table */
+.tabs li:hover
+{
+    cursor: pointer;
+}
+
+.tabs li, .cbi-tabmenu li
+{
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+/*底线粗细 */
+.tabs li, .cbi-tabmenu li
+{
+    border-top: 0.2rem solid transparent;
+}
+
+.tabs li[class~="active"], .tabs li:hover
+{
+    cursor: pointer;
+    border-bottom: .18751rem solid #fe7a00;
+    margin-bottom: 0;
+    border-radius: 0
+}
+
+.tabs li[class~="active"] a, .tabs li:hover a
+{
+    color: #fe7a00
+}
+
+ul.tabs, .tabmenu .tabs, #tabmenu .tabs, ul.cbi-tabmenu
+{
+    padding-left: 2.5%;
+    border-bottom: 0;
+    background-color: #fff;
+    padding-top: 1rem;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
+    box-shadow: rgba(255,255,255,0.5) 0 0 5px -5px;
+    background-color: rgba(0,0,0,0.4);
+    /* For FireFox */
+    scrollbar-color: rgba(0,0,0,.4) rgba(0,0,0,.3);
+    scrollbar-width: thin;
+    font-weight: bold;
+    border-radius: .375rem;
+    text-shadow: -1px 1px 0px #333;
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(255,255,255,0.12), 0 2px 5px 0 rgba(255,255,255,0.2);
+}
+
+.tabs li
+{
+    font-size: 1.2rem;
+    color: #ddd;
+    display: inline-block;
+}
+
+.tabs li a, .cbi-tabmenu li a
+{
+    color: #ddd;
+    text-shadow: 0px 1px 3px #222;
+    text-align: center;
+    border-radius: 0;
+    overflow-x: auto;
+    padding: 0.8rem 1.9rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cbi-tabmenu li:hover
+{
+    cursor: pointer;
+    color: #fe7a00;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
+    text-shadow: 0px 1px 3px #222;
+    background: rgba(255, 255, 255, 0.25);/*指向色*/
+    margin-bottom: 0
+}
+
+.cbi-tabmenu li[class~="cbi-tab"]
+{
+    border-top: .18751rem solid #fe7a00;
+    border-top-left-radius: .25rem;
+    border-top-right-radius: .25rem;
+    text-shadow: 0px 1px 3px #222;
+    background: rgba(255, 255, 255, 0.45);/*选 中色*/
+}
+
+.cbi-tabmenu li[class~="cbi-tab"] a
+{
+    color: #FF8800;
+}
+
+.cbi-section-node-tabbed
+{
+    padding: 0;
+    margin-top: 0;
+}
+
+.cbi-tabcontainer
+{
+    clear: both;
+}
+
+.cbi-tab-descr
+{
+    padding: 0.5rem;
+}
+
+.cbi-tabcontainer .cbi-value:nth-of-type(2n)
+{
+    background: rgba(50,50,50,.4);
+    scrollbar-color: rgba(50,50,50,.4) rgba(50,50,50,.4);
+    scrollbar-width: thin;
+}
+
+.cbi-value-helpicon img
+{
+    display: none;
+}
+
+.cbi-value-helpicon:before
+{
+    font-family: 'ffpdboy' !important;
+    content: "\f059";
+}
+
+.cbi-value-description
+{
+    font-size: small;
+    opacity: 0.8;
+    padding: 0.5rem 0 0 0;
+}
+
+.cbi-value-title
+{
+    word-wrap: break-word;
+    line-height: 150%;
+    vertical-align: middle;
+    padding: 6px 10px;
+    width: 23rem;
+    float: left;
+    text-align: right;
+    display: table-cell;
+}
+
+.cbi-value
+{
+    padding: .3rem 1rem;
+    display: inline-block;
+    width: 100%;
+}
+
+.cbi-value-field, .cbi-value-description
+{
+    display: table-cell;
+    line-height: 1.7;
+    width: 95%;
+    font-size: 0.95rem;
+}
+
+.cbi-section-table-descr .cbi-section-table-cell, .cbi-section-table-titles .cbi-section-table-cell
+{
+    border: none;
+}
+
+.cbi-rowstyle-1
+{
+    background-color: transparent;
+}
+
+.cbi-rowstyle-1 .cbi-button-up, .cbi-rowstyle-1 .cbi-button-down
+{
+}
+
+.cbi-rowstyle-2
+{
+    background-color: transparent;
+}
+
+.cbi-rowstyle-2 .cbi-button-up, .cbi-rowstyle-2 .cbi-button-down
+{
+    background-color: #9876AA!important;
+}
+
+.cbi-section-table .cbi-section-table-titles .cbi-section-table-cell
+{
+    width: auto !important;
+}
+
+.cbi-section-table tbody tr:nth-child(odd) td, .cbi-section-table tbody tr:nth-child(odd) th
+{
+    background-color: rgba(0,0,0,.2);
+    /* For Firefox */
+    scrollbar-color: rgba(0,0,0,.2) rgba(50,50,50,.2);
+}
+
+.cbi-section-table tbody tr:hover td, .cbi-section-table tbody tr:hover th
+{
+    background-color: rgba(0,0,0,.4);
+    /* For Firefox */
+    scrollbar-color: rgba(0,0,0,.4) rgba(50,50,50,.4);
+}
+
+.cbi-section-table-row.cbi-value-field .cbi-input-select, .cbi-section-table-row.cbi-value-field .cbi-input-text, .cbi-section-table-row.cbi-value-field .cbi-input-password, .cbi-section-table-row.cbi-value-field .cbi-dropdown
+{
+    width: 6rem;
+    padding-left: 0.5em;
+}
+
+/* desc */
+
+.cbi-map-descr, .cbi-section-descr
+{
+    padding: 1rem;
+    margin: 0 1rem 0rem 1rem;
+    color: #ddd;
+    font-size: 0.893rem;
+    line-height: 1rem
+}
+
+.cbi-dropdown
+{
+    display: inline-flex;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    height: auto;
+}
+
+.cbi-dropdown:focus
+{
+    outline: 2px solid #4b6e9b;
+}
+
+.cbi-dropdown ul
+{
+    margin: 0 !important;
+    padding: 0;
+    list-style: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    width: 100%;
+}
+
+.cbi-dropdown ul.preview
+{
+    display: none;
+}
+
+.cbi-dropdown .open
+{
+    border: 2px outset #eee;
+    flex-basis: 15px;
+    background: #eee;
+}
+
+.cbi-dropdown .open, .cbi-dropdown .more
+{
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    line-height: 2em;
+    padding: 0 .25em;
+}
+
+.cbi-dropdown .more, .cbi-dropdown ul li[placeholder]
+{
+    color: #777;
+    font-weight: bold;
+    text-shadow: 1px 1px 0px #fff;
+    display: none;
+}
+
+.cbi-dropdown ul li
+{
+    display: none;
+    padding: .25em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    flex-grow: 1;
+    align-items: center;
+    align-self: center;
+    min-height: 20px;
+}
+
+.cbi-dropdown ul li .hide-open
+{
+    display: initial;
+}
+
+.cbi-dropdown ul li .hide-close
+{
+    display: none;
+}
+
+.cbi-dropdown ul li[display]:not([display="0"])
+{
+    border-left: 1px solid #ccc;
+}
+
+.cbi-dropdown[empty] ul
+{
+    max-width: 1px;
+}
+
+.cbi-dropdown ul li form
+{
+    display: none;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.cbi-dropdown ul li img
+{
+    vertical-align: middle;
+    margin-right: .25em;
+}
+
+.cbi-dropdown ul li form input[type="checkbox"]
+{
+    margin: 0;
+    height: auto;
+}
+
+.cbi-dropdown ul li input[type="text"]
+{
+    height: 20px;
+}
+
+.cbi-dropdown[open]
+{
+    position: relative;
+}
+
+.cbi-dropdown[open] ul.dropdown
+{
+    display: block;
+    background: #f6f6f5;
+    border: 1px solid #918e8c;
+    box-shadow: 0 0 4px #918e8c;
+    position: absolute;
+    z-index: 1000;
+    max-width: none;
+    min-width: 100%;
+    width: auto;
+}
+
+.cbi-dropdown ul li[display], .cbi-dropdown[open] ul.preview, .cbi-dropdown[open] ul.dropdown li, .cbi-dropdown[multiple] ul li label, .cbi-dropdown[multiple][open] ul.dropdown li, .cbi-dropdown[multiple][more] .more, .cbi-dropdown[multiple][empty] .more
+{
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.cbi-dropdown[empty] ul li, .cbi-dropdown[optional][open] ul.dropdown li[placeholder], .cbi-dropdown[multiple][open] ul.dropdown li form
+{
+    display: block;
+}
+
+.cbi-dropdown[open] ul.dropdown li .hide-open
+{
+    display: none;
+}
+
+.cbi-dropdown[open] ul.dropdown li .hide-close
+{
+    display: initial;
+}
+
+.cbi-dropdown[open] ul.dropdown li
+{
+    border-bottom: 1px solid #ccc;
+}
+
+.cbi-dropdown[open] ul.dropdown li[selected]
+{
+    background: #b0d0f0;
+}
+
+.cbi-dropdown[open] ul.dropdown li.focus
+{
+    background: linear-gradient(90deg, #a3c2e8 0%, #84aad9 100%);
+}
+
+.cbi-dropdown[open] ul.dropdown li:last-child
+{
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.cbi-dropdown[disabled]
+{
+    pointer-events: none;
+    opacity: .6;
+}
+
+.cbi-dropdown .zonebadge
+{
+    width: 100%;
+}
+
+.cbi-dropdown[open] .zonebadge
+{
+    width: auto;
+}
+
+/* luci */
+
+.hidden
+{
+    display: none
+}
+
+.left
+{
+    text-align: left !important;
+}
+
+.right
+{
+    text-align: right !important;
+}
+
+.center
+{
+    text-align: center !important;
+}
+
+.inline
+{
+    display: inline;
+}
+
+.cbi-page-actions
+{
+    text-align: right;
+    padding: 0rem;
+    margin-bottom: 3rem;
+}
+
+/* select */
+.cbi-value-field .cbi-dropdown
+{
+    min-width: 15rem;
+}
+
+.cbi-value-field .cbi-input-select
+{
+    min-width: 15rem;
+}
+
+.ifacebadge
+{
+    display: inline-flex;
+    border-bottom: 1px solid #ff8534;
+    padding: 0.5rem 1rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #07223e;
+    background-color: rgba(7,34,62,.5);
+}
+
+td .ifacebadge, .td .ifacebadge
+{
+    background-color: #F0F0F0;
+    font-size: 0.9rem;
+}
+
+.ifacebadge em, .ifacebadge img
+{
+    display: inline-block;
+    margin: 0 .2rem;
+    align-self: start;
+}
+
+.ifacebadge img + img
+{
+    margin: 0 .2rem 0 0;
+}
+
+.network-status-table
+{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.network-status-table .ifacebox
+{
+    margin: .5em;
+    flex-grow: 1;
+}
+
+.network-status-table .ifacebox-body
+{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.network-status-table .ifacebox-body span
+{
+    flex: 10;
+}
+
+.network-status-table .ifacebox-body div
+{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.network-status-table .ifacebox-body .ifacebadge
+{
+    flex: 1;
+    margin: .5em .25em 0 .25em;
+    padding: .5em;
+    min-width: 220px;
+    background-color: #fff;
+    align-items: center;
+}
+
+/*textarea*/
+
+.cbi-input-textarea
+{
+    color: #bbb;
+    padding: 6px 10px;
+    margin: 0;
+    line-height: 120%;
+    ont-size: .8rem;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif'Microsoft Yahei';
+    border: 1px solid #666;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.75);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+ transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s outline-style: none;
+    vertical-align: baseline;
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.75);
+    /* For FireFox */
+    scrollbar-color: rgba(0,0,0,.75) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+#syslog
+{
+    width: 100%;
+    min-height: 15rem;
+    padding: 1rem;
+    font-size: small;
+    line-height: 120%;
+    color: #A9B7C6;
+    margin-bottom: 20px;
+    border-radius: 0;
+    background-color: rgba(7,34,62,.5);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    border: none;
+    font-family : 'Consolas', 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei';
+    /* For FireFox */
+    scrollbar-color: rgba(238,238,238,.5) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+/* change */
+#wan4_i, #wan6_i
+{
+    width: 50px !important;
+}
+
+.uci-change-list
+{
+    font-family: 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei', monospace;
+}
+
+.uci-change-list ins, .uci-change-legend-label ins
+{
+    text-decoration: none;
+    border: 1px solid #00FF00;
+    display: block;
+    padding: 2px;
+}
+
+.uci-change-list del, .uci-change-legend-label del
+{
+    text-decoration: none;
+    border: 1px solid #FF0000;
+    display: block;
+    font-style: normal;
+    padding: 2px;
+}
+
+.uci-change-list var, .uci-change-legend-label var
+{
+    text-decoration: none;
+    border: 1px solid #CCCCCC;
+    display: block;
+    font-style: normal;
+    padding: 2px;
+}
+
+.uci-change-list var ins, .uci-change-list var del
+{
+    border: none;
+    white-space: pre;
+    font-style: normal;
+    padding: 0px;
+}
+
+.uci-change-legend
+{
+    padding: 5px;
+}
+
+.uci-change-legend-label
+{
+    width: 150px;
+    float: left;
+}
+
+.uci-change-legend-label ins, .uci-change-legend-label del, .uci-change-legend-label var
+{
+    float: left;
+    margin-right: 4px;
+    width: 10px;
+    height: 10px;
+    display: block;
+}
+
+.uci-change-legend-label var ins, .uci-change-legend-label var del
+{
+    line-height: 6px;
+    border: none;
+}
+
+.uci-change-list var, .uci-change-list del, .uci-change-list ins
+{
+    padding: 0.5rem;
+}
+
+/* other fix */
+#iwsvg, #iwsvg2, #bwsvg
+{
+    border: 1px solid #e4eaec !important;
+    border-top: none !important;
+}
+
+.ifacebox
+{
+    border: 1px solid #999;
+    background: rgba(50,50,50,.7);
+    /* For Firefox */
+    scrollbar-color: rgba(50,50,50,.4) rgba(50,50,50,.7);
+    scrollbar-width: thin;
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.2em;
+    min-width: 100px;
+}
+
+.ifacebox-head
+{
+    padding: .25em;
+    background: #eee;
+}
+
+.ifacebox-head.active
+{
+    background: #90c0e0;
+}
+
+.ifacebox-body
+{
+    padding: .25em;
+}
+
+.ifacebox strong
+{
+    color: #fff;
+}
+
+.cbi-image-button
+{
+    margin-left: 0.5rem;
+    position: relative;
+    top: 0.5rem;
+}
+
+.zonebadge
+{
+    padding: 0.2rem 0.5rem;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.zonebadge .ifacebadge
+{
+    padding: .2rem .3rem;
+    margin: 0.1rem 0.2rem;
+    border: 1px solid #6C6C6C;
+}
+
+.zonebadge input[type="text"]
+{
+    padding: 0.16rem 1rem;
+    min-width: 10rem;
+    margin-top: 0.3rem;
+}
+
+.zonebadge em, .zonebadge strong
+{
+    margin: 0 0.2rem;
+    display: inline-block;
+}
+
+.cbi-value-field .cbi-input-checkbox, .cbi-value-field .cbi-input-radio
+{
+    margin: .9rem .25rem 0 .25rem;
+    height: 1rem;
+    line-height: 1.6
+}
+
+.cbi-value-field input + .cbi-value-description
+{
+    padding: 0;
+}
+
+.cbi-value-field ul li
+{
+    display: flex;
+}
+
+.cbi-value-field ul li label
+{
+    margin-top: 0.5rem;
+}
+
+.cbi-value-field ul li .ifacebadge
+{
+    background-color: #07223e;
+    margin-left: 0.4rem;
+    margin-top: -0.5rem;
+}
+
+.cbi-section-table-row .cbi-value-field .cbi-dropdown
+{
+    min-width: 7rem;
+}
+
+.cbi-section-table-row .cbi-value-field .cbi-input-select
+{
+    min-width: 7rem;
+}
+
+.cbi-section-create .cbi-button-add
+{
+    margin: 0.5rem;
+}
+
+div.cbi-value var, td.cbi-value-field var, .td.cbi-value-field var
+{
+    font-style: italic;
+    color: #FFC66D;
+}
+
+small
+{
+    font-size: small;
+    white-space: normal;
+}
+
+.cbi-button-up, .cbi-button-down
+{
+    display: inline-block;
+    min-width: 0;
+    padding: 0.2rem 0.3rem;
+    font-size: 10pt;
+    background-color: #9876AA;
+}
+
+.cbi-optionals
+{
+    padding: 1rem 1rem 0 1rem;
+    border-top: 1px solid #CCC;
+}
+
+/* for mwan3 status */
+#diag-rc-output pre
+{
+    display: block;
+    padding: 8.5px;
+    margin: 0 0 18px;
+    line-height: 1.5rem;
+    -moz-border-radius: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+    color: #ffffff;
+    background-color: rgba(7,34,62,.5);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    border: none;
+    font-family : 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei';
+}
+}
+
+input[name="ping"], input[name="traceroute"], input[name="nslookup"]
+{
+    width: 80%;
+}
+
+header .container .pull-right *
+{
+    position: relative;
+    top: 0rem;
+    cursor: pointer;
+}
+
+#xhr_poll_status.label.success
+{
+    background-color: #299e00 !important;
+    color: #fff !important
+}
+
+#xhr_poll_status.label
+{
+    background-color: #fff !important;
+    color: #14CE14 !important
+}
+
+.label
+{
+    padding: .3rem .8rem;
+    font-size: .9rem;
+    font-weight: bold;
+    color: #ffffff !important;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background-color: #bfbfbf;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-shadow: none;
+    text-decoration: none
+}
+
+.notice
+{
+    background-color: #5BC0DE;
+}
+
+.showSide:before
+{
+    display: none;
+    color: #76838f;
+    content: "\e029";
+    font-family: "ffpdboy" !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+ font-size: 1.7rem line-height: 1;
+    top: 18px;
+    left: 10px;
+    position: relative;
+    vertical-align: middle;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.darkMask
+{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.56);
+    content: "";
+    z-index: 99;
+    display: none;
+}
+
+/* fix Main Login*/
+.node-main-login .main
+{
+    top: 0;
+    height: 100% !important;
+}
+
+.node-main-login .main .main-left
+{
+    display: none;
+}
+
+.node-main-login .main .main-right
+{
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+
+.node-main-login .main .main-right header
+{
+    background: none !important;
+    box-shadow: none !important;
+    display: none !important;
+}
+
+/* 图片切换动画 */
+.node-main-login .main .main-right .login-bg
+{
+    display: block;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    background-size: cover;
+    background-color: #000;
+    background-position: top center;
+    transition: all 0.5s;
+}
+
+.node-main-login .main .main-right .login-bg.blur
+{
+    transform: scale(1.05);
+    -webkit-filter: blur(5px);
+    /* Chrome, Safari, Opera */
+    filter: blur(5px);
+}
+
+.node-main-login .main .main-right #maincontent
+{
+    height: 100%;
+    padding-top: 23vh;
+    margin-top: 0rem;
+    background-color: transparent !important;
+    text-align: center;
+    display: inline-block;
+    z-index: 999;
+}
+
+.node-main-login .main fieldset
+{
+    padding: 5px;
+    margin-bottom: 1rem;
+    display: inline;
+    background: none;
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.node-main-login .main .main-right #maincontent .container
+{
+    display: inline-block;
+    padding: 0.5rem 1.1rem;
+    position: relative;
+    text-align: left;
+    margin: 0;
+    border: 1px solid #bbb;
+    border-radius: 2pv;
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+    /* For FireFox */
+    scrollbar-color: rgba(255, 255, 255, 0.5) rgba(50,50,50,.5);
+    scrollbar-width: thin;
+}
+
+.node-main-login.main.main-left
+{
+    display: none
+}
+
+.node-main-loginheader .container
+{
+    display: none !important
+}
+
+.node-main-login.main .container h2
+{
+    text-align: center;
+    width: 300px;
+    height: 60px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 4px;
+    display: block;
+    margin: 30px auto 15px auto;
+    padding: 0;
+    text-indent: -500px;
+    overflow: hidden;
+    border: #fff 0px solid;
+    background-image: url(../logo.png);
+    background-size: cover;
+    transition: background .2s ease-in-out, border .2s ease-in-out, color .2s ease-in-out, opacity .2s ease-in-out;
+    opacity: 0.7;
+}
+
+/* 提示用户名密码字体设置 */
+.node-main-login .main .main-right #maincontent .container .cbi-map .cbi-map-descr
+{
+    text-align: center;
+    padding: 2rem;
+    margin: 0;
+    color: #222;
+    font-size: 1.4rem;
+}
+
+.node-main-login .main fieldset
+{
+    padding: 0.5rem;
+    margin: 0;
+    margin-bottom: 1rem;
+    display: inline;
+    background: none;
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+/* 登陆按钮距离位置 中*/
+
+.node-main-login .main form div:nth-last-child(1)
+{
+    padding-top: 2rem;
+    margin-bottom: 4rem;
+}
+
+/* 密码输入居中*/
+.node-main-login .main form div:nth-last-child(1), .node-main-login .main form div:nth-last-child(2)
+{
+    float: center;
+    text-align: center;
+}
+
+/* 二个输入框之间的距离  */
+.node-main-login .main .cbi-value
+{
+    display: block;
+    position: relative
+}
+
+.node-main-login .main .cbi-value.cbi-value-last
+{
+    display: block;
+    margin-top: 1rem;
+    position: relative
+}
+
+/* 登陆按钮式样  */
+.node-main-login.main .container input.cbi-button
+{
+    min-width: 18rem; /* 登陆按钮宽度  */
+    padding: 0.6rem 1.5rem;
+    line-height: 1.5rem;
+    min-height: 40px;
+    font-size: 18px;
+    background-image: linear-gradient(180deg, #FF8000, #996600) !important;
+}
+
+/* 登陆输入框设置 */
+.node-main-login.main .cbi-value input
+{
+    font-size: 1.4rem;
+    line-height: 1.4rem;
+    display: block;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    transition: 8898aaall 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    color: #525461;
+    margin: 0;
+    text-align: center;
+    text-indent: 0rem;
+    background-color: transparent;
+    background-clip: padding-box;
+    background: transparent content-box !important;
+    box-sizing: border-box;
+    height: 0 !important;
+    padding: 1.38rem 0;
+}
+
+/* 登陆框设置前面图标 */
+.node-main-login.main .cbi-value.cbi-value .cbi-value-field:before, .node-main-login.main .cbi-value.cbi-value-last .cbi-value-field:before
+{
+    font-family: 'ffpdboy' !important;
+    color: #525461;
+    font-size: 1.6rem;
+    position: absolute;
+    z-index: 100;
+    left: 8px;
+    bottom: 0px
+}
+
+.node-main-login.main .cbi-value.cbi-value .cbi-value-field:before
+{
+    content: "\e904";
+}
+
+.node-main-login.main .cbi-value.cbi-value-last .cbi-value-field:before
+{
+    content: "\e907";
+}
+
+/* 取消输入用户名密码和重置*/
+.node-main-login.main .cbi-value.cbi-value .cbi-value-title, .node-main-login.main .cbi-value.cbi-value-last .cbi-value-title
+{
+    display: none !important
+}
+
+.node-main-login.main .cbi-button-reset
+{
+    display: none !important
+}
+
+/* 取消输入用户 框外面围栏   */
+.node-main-login .errorbox, .node-main-login .alert-message.warning
+{
+    position: absolute;
+    color: #fff;
+    width: calc(100% - 2rem);
+    box-sizing: border-box;
+    margin-top: 6rem;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    /*background-color: #eea236  !important; */
+    background-image: linear-gradient(180deg, #FF8000, #996600) !important;
+}
+
+.node-main-login .main .main-right #maincontent .alert-message p
+{
+    color: #fff;
+    font-weight: normal;
+    font-size: 0.83rem;
+}
+
+.main .main-right #maincontent .containerdiv:nth-child(1).alert-message.warninga
+{
+    font: inherit;
+    overflow: visible;
+    text-transform: none;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    min-width: 6rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    line-height: 1.42857143;
+    color: #fff;
+    background-color: #5F1313;
+    border-color: #5F1F13;
+    margin-top: 2rem;
+    text-decoration: inherit
+}
+
+/* 取消输入用户 框外面围栏   */
+.node-main-login.main fieldset, .node-main-login.main .cbi-section, .node-main-login.main .cbi-section.cbi-section-node
+{
+    padding: 0.5rem;
+    margin: 0rem;
+    background: none;
+    border: none;
+    box-shadow: none;
+    text-align: center;
+    overflow: hidden
+}
+
+.node-main-login footer
+{
+    bottom: 0;
+    position: absolute;
+    text-align: center;
+    color: #fff;
+    width: 100%;
+}
+
+.node-main-login footer a
+{
+    color: #fff;
+    text-decoration: none
+}
+
+.node-main-login .main .cbi-value
+{
+    display: block;
+}
+
+.node-main-login .main .cbi-value *
+{
+    display: inline-block !important;
+}
+
+/* other fix */
+input[type="checkbox"]
+{
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0;
+    cursor: pointer;
+    transition: all .2s;
+    background-color: #e18904;
+    margin: .9rem .25rem 0 .1rem
+}
+
+input[type="checkbox"]:checked
+{
+    border: 1px solid #999;
+    background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 8 8\'%3e%3cpath fill=\'%23fff\' d=\'M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z\'/%3e%3c/svg%3e') !important;
+    background-color: #fe7a00;
+    width: 20px !important;
+    height: 20px !important;
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center
+}
+
+ul li .cbi-input-checkbox
+{
+    margin: .5rem .25rem !important
+}
+
+.cbi-input-radio
+{
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border: 1px solid #996699;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0;
+    border-radius: 70%;
+    cursor: pointer;
+    transition: all .2s;
+    margin: .25rem 0
+}
+
+/* fix status overview */
+
+.node-status-overview .main fieldset:nth-child(4) .td:nth-child(2)
+{
+    white-space: normal;
+}
+
+/* fix status processes */
+
+.node-status-processes .main .table .tr .td:nth-child(3)
+{
+    white-space: normal;
+}
+
+.node-status-iptables .main div .cbi-map form
+{
+}
+
+.cbi-map fieldset h3
+{
+    padding: 10px 5px;
+}
+
+.cbi-map fieldset ul li
+{
+}
+
+/* fix system reboot */
+
+.node-system-reboot .main .main-right p, .node-system-reboot .main .main-right h3
+{
+    font-size: 1.2rem;
+    color: #ffffff;
+    background-color: rgba(7,34,62,.4);
+}
+
+/* fix Services  Network Shares*/
+.node-services-samba .main .cbi-tabcontainer:nth-child(3) .cbi-value-title
+{
+    margin-bottom: 1rem;
+}
+
+.node-services-samba .main .cbi-tabcontainer:nth-child(3) .cbi-value-field
+{
+    display: list-item;
+}
+
+.node-services-samba .main .cbi-tabcontainer:nth-child(3) .cbi-value-description
+{
+    padding-top: 1rem;
+    line-height: 150%;
+}
+
+/* fix System Software*/
+.node-system-packages .main table tr td:nth-child(1)
+{
+    width: auto !important;
+}
+
+.node-system-packages .main table tr td:nth-last-child(1)
+{
+    white-space: normal;
+    font-size: small;
+    color: #ffffff;
+}
+
+.node-system-packages .main .cbi-tabmenu li a, .tabs li a
+{
+    padding: 0.5rem 1rem;
+}
+
+.node-system-packages .main .cbi-value pre
+{
+    overflow: auto;
+    padding: 1rem;
+    font-size: 1.2rem;
+    line-height: 120%;
+    color: #A9B7C6;
+    margin-bottom: 20px;
+    border-radius: 0;
+    background-color: rgba(7,34,62,.75);/*rgba(53,53,53,.9)*/
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    border: none;
+    font-family : 'Consolas', 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei';
+    /* For FireFox */
+    scrollbar-color: rgba(238,238,238,.5) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+.node-system-packages .main .cbi-value pre.error
+{
+    color: #d92323;
+}
+
+.node-system-packages .main .cbi-section-node:first-child .cbi-value-lastdiv
+{
+    border: 1px solid #999999 !important;
+    width: 100% !important;
+    background-color: #D1E4F0 !important;
+    height: 1.4rem !important;
+    border-radius: 0.25rem !important;
+    margin: 0.5rem 0!important;
+    overflow: hidden
+}
+
+.node-system-packages.main .cbi-section-node:first-child .cbi-value-lastdivdiv
+{
+    border-right: 0 !important;
+    background-color: #fe7a00 !important
+}
+
+.cbi-tabmenu + .cbi-section
+{
+    margin-top: 0;
+}
+
+/* fix network firewall*/
+.node-network-firewall .main .cbi-section-table-row .cbi-value-field .cbi-input-select
+{
+    min-width: 4rem;
+}
+
+.node-status-iptables fieldset, .node-system-packages fieldset, .node-system-flashops fieldset
+{
+    margin-top: 0;
+}
+
+.node-status-iptables .cbi-tabmenu, .node-system-packages .cbi-tabmenu, .node-system-flashops .cbi-tabmenu
+{ /*border: none;*/
+}
+
+#cbi-firewall-redirect table *, #cbi-network-switch_vlan table *, #cbi-firewall-zone table *
+{
+    font-size: small;
+}
+
+#cbi-firewall-redirect table input[type="text"], #cbi-network-switch_vlan table input[type="text"], #cbi-firewall-zone table input[type="text"]
+{
+    width: 5rem;
+}
+
+#cbi-firewall-redirect table select, #cbi-network-switch_vlan table select, #cbi-firewall-zone table select
+{
+    min-width: 3.5rem;
+}
+
+/* language fix */
+body.lang_pl.node-main-login .cbi-value-title
+{
+    width: 12rem;
+}
+
+/* Fix Style For Apps */
+/* For luci-app-accesscontrol */
+div#cbi-webrestriction.cbi-map .cbi-value.cbi-value-last div.cbi-value-field font.webrestriction_status
+{
+    display: block;
+    padding-top: 6px;
+}
+
+/* For luci-app-control-weburl */
+fieldset#cbi-weburl-basic.cbi-section div.cbi-value-field font.weburl_status
+{
+    display: block;
+    padding-top: 6px;
+}
+
+/* For luci-app-control-timewol */
+div#cbi-timewol.cbi-map .cbi-value.cbi-value-last div.cbi-value-field font.timewol_status
+{
+    display: block;
+    padding-top: 6px;
+}
+
+/* For luci-app-kodexplorer */
+div#cbi-kodexplorer.cbi-map div#_nginx_status.cbi-value-field font
+{
+    display: block;
+    padding-top: 6px;
+}
+
+div#cbi-kodexplorer.cbi-map div#_php_status.cbi-value-field font
+{
+    display: block;
+    padding-top: 6px;
+}
+
+/* For luci-app-aria2 */
+div#cbi-aria2.cbi-map fieldset.cbi-section div.cbi-section-descr input#use_websocket
+{
+    vertical-align: middle;
+}
+
+/* For luci-app-ipsec-vpnserver-manyusers */
+div#cbi-ipsec.cbi-map .cbi-value div.cbi-value-field font.ipsec-server_status
+{
+    display: block;
+    padding-top: 6px;
+}
+
+/* For luci-app-strongswanInDocker */
+div#cbi-strongswanInDocker.cbi-map .cbi-value div.cbi-value-field font.ipsec-server_status, div#cbi-strongswanInDocker.cbi-map .cbi-value div.cbi-value-field font#strongswanInDocker-download_status.strongswanInDocker-download_status
+{
+    display: block;
+    padding-top: 6px;
+}
+
+pre#strongswanInDocker_download_log_viewer
+{
+    border: 1px solid #e4eaec;
+    width: 100%;
+    min-height: 15rem;
+    height: 15rem;
+    overflow: scroll;
+    padding: 1rem;
+    font-size: 1.2rem;
+    line-height: 120%;
+    color: #A9B7C6;
+    margin-bottom: 20px;
+    border-radius: 0;
+    background-color: rgba(7,34,62,.75);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    font-family : 'Consolas', 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei';
+    /* For FireFox */
+    scrollbar-color: rgba(238,238,238,.5) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+/* For luci-app-dockerman */
+div#cbi-dockerman.cbi-map div.pure-g.status
+{
+    margin: 1rem 0rem 1rem 0rem;
+    padding: 0 1rem;
+    background-color: rgba(7,34,62,.4);
+}
+
+div#cbi-dockerman.cbi-map div.pure-g.status div.pure-u-1-4
+{
+    background-color: rgba(7,34,62,.5);
+}
+
+div#cbi-dockerman.cbi-map div.pure-g.status div.pure-u-1-4 div.block.pure-g div.pure-u-2-5 div.img-con svg
+{
+    fill: white;
+}
+
+/* For DDNS */
+textarea.ddns_logview
+{
+    border: 1px solid #e4eaec;
+    width: 100%;
+    min-height: 15rem;
+    padding: 1rem;
+    font-size: 1.2rem;
+    line-height: 120%;
+    color: #A9B7C6;
+    margin-bottom: 20px;
+    border-radius: 0;
+    background-color: rgba(7,34,62,.75);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+    font-family : 'Consolas', 'Courier New', 'Hiragino Sans GB W6', 'Microsoft Yahei';
+    /* For FireFox */
+    scrollbar-color: rgba(238,238,238,.5) rgba(50,50,50,.3);
+    scrollbar-width: thin;
+}
+
+/* For luci-app-passwall */
+#_passwall_status_fieldset div div:nth-child(10) div div.pure-u-1-5 div img
+{
+    filter: invert(100%);
+}
+
+@media screen and (max-width:992px) {
+
+body > header > div > a.brandWithBackground
+{
+    display: none !important;
+}
+
+html
+{
+    font-size: 9pt;
+}
+
+header
+{
+    height: 3.5rem;
+}
+
+header > .container > .brand
+{
+    font-size: 1.7rem;
+    height: 3.5rem;
+    line-height: 3.5rem;
+    width: calc(0% + 15rem);
+    background-color: rgba(0, 0,0, 0.5);
+    opacity: .8;
+    padding-left: 5px;
+    padding-right: 20px;
+}
+
+.main .main-left
+{
+    width: 0;
+    position: fixed;
+    z-index: 100;
+    opacity: .8;
+    width: calc(0% + 15rem);
+    overflow-x: auto;
+    position: fixed;
+    background-color: rgba(0, 0,0, 0.5);
+    top: 3.5rem;
+    height: calc(100% - 3.5rem);
+}
+
+.main-right
+{
+    width: 100%;
+}
+
+.showSide
+{
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.node-main-login .showSide
+{
+    display: none !important
+}
+
+header>.container>.brand
+{
+    display: inline-block;
+}
+
+.cbi-value-title
+{
+    width: 9rem;
+    padding-right: 1rem
+}
+
+.node-network-diagnostics>.main .cbi-map fieldset>div *
+{
+    width: 100% !important
+}
+
+.node-network-diagnostics>.main .cbi-map fieldset>div input[type="text"]
+{
+    margin: 3rem 0 0 0 !important
+}
+
+.node-network-diagnostics>.main .cbi-map fieldset>div:nth-child(4) input[type="text"]
+{
+    margin: 0 !important
+}
+
+.node-network-diagnostics>.main .cbi-map fieldset>div select, .node-network-diagnostics>.main .cbi-map fieldset>div input[type="button"]
+{
+    margin: 1rem 0 0 0 !important
+}
+
+.node-network-diagnostics>.main .cbi-map fieldset>div
+{
+    width: 100% !important
+}
+
+.node-main-login>.main .cbi-value-title
+{
+    text-align: left
+}
+
+#diag-rc-output>pre
+{
+    font-size: 1rem
+}
+}
+
+@media screen and (max-width:480px) {
+
+body
+{
+    font-size: .8rem
+}
+
+div.cbi-section, fieldset
+{
+    padding: 0;
+    margin: 1rem 0 0 0;
+    overflow-x: auto
+}
+
+.pull-right
+{
+    float: right;
+    margin-top: 0rem !important
+}
+
+.tabs
+{
+    margin: .5rem 0
+}
+
+.toggle
+{
+    margin: 0
+}
+
+h2
+{
+    font-size: 1.125rem
+}
+
+.panel-title
+{
+    font-size: 1rem;
+    padding-bottom: 1rem
+}
+
+#maincontent>.container
+{
+    margin: 0 1rem 1.5rem 1rem
+}
+
+.main>.main-left>.nav>.slide>.menu
+{
+    font-size: 1rem
+}
+
+.main>.main-left>.nav>.slide>.slide-menu>li>a
+{
+    font-size: .9rem
+}
+
+.main>.main-left>.nav>.slide>.menu:after
+{
+    top: .9rem
+}
+
+#ethinfo td
+{
+    padding: .75rem .2rem !important
+}
+
+.cbi-value
+{
+    padding: 0.6em 0em
+}
+
+.cbi-value-title
+{
+    width: 100%;
+    min-width: 0rem !important;
+    display: block;
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+    text-align: left;
+    padding: 0 .25rem
+}
+
+.cbi-value input[type="password"], .cbi-value input[type="text"]
+{
+    min-width: 15rem
+}
+
+.cbi-value-field .cbi-input-select
+{
+    min-width: 15rem
+}
+
+.cbi-value-field, .cbi-value-description
+{
+    width: 95%
+}
+
+select, input
+{
+    width: 95%;
+    min-width: unset
+}
+
+.cbi-value>.cbi-value-field
+{
+    display: inline-block
+}
+
+.cbi-value-field .cbi-input-textarea
+{
+    width: 95% !important;
+    min-width: unset
+}
+
+.node-main-login
+{
+    width: 18rem;
+    padding-left: 0rem
+}
+
+.cbi-tabmenu>li, .tabs>li
+{
+    padding: 0.6rem 0rem
+}
+
+.cbi-tabmenu>li>a, .tabs>li>a
+{
+    padding: 0.2rem 0.3rem;
+    font-size: 0.9rem
+}
+
+.cbi-page-actions>div>input
+{
+    display: none
+}
+
+.node-main-login>.main .container
+{
+    padding: 0.5rem 1rem 2rem 1rem;
+    margin: 0 auto !important
+}
+
+.node-main-login>.main form>div:nth-last-child(1)
+{
+    margin-top: 0rem
+}
+
+.node-main-login>.main .cbi-value-title
+{
+    width: 100% !important;
+    margin-top: 0rem;
+    font-size: 1rem;
+    margin-bottom: 0;
+    padding: 0 0.5rem
+}
+
+.node-main-login>.main fieldset
+{
+    margin: 0;
+    padding: 0.5rem
+}
+
+.node-main-login .alert-message.warning
+{
+    width: calc(100% - 2rem);
+    padding: 1rem 1rem;
+    font-size: 12px
+}
+
+h2
+{
+    font-size: 1.5rem
+}
+
+.node-main-login>.main .container h2
+{
+    margin: -70px auto 15px auto
+}
+
+.cbi-value-field .cbi-input-checkbox, .cbi-value-field .cbi-input-radio
+{
+    margin: 0 .25rem 0 .25rem;
+    height: 1rem;
+    line-height: 1.6
+}
+
+.cbi-page-actions>div>input
+{
+    display: none
+}
+.tabs::-webkit-scrollbar, .cbi-tabmenu::-webkit-scrollbar {
+width:0px;
+height:0px
+}
+
+.tabs>li>a
+{
+    font-size: .9rem
+}
+
+select, input
+{
+    font-size: 0.9rem
+}
+
+.mobile-hide
+{
+    display: none
+}
+
+.panel-title
+{
+    font-size: 1.4rem;
+    padding-bottom: 1rem
+}
+
+.node-status-realtime table>tbody>tr>td, .node-status-realtime table>tfoot>tr>td, .node-status-realtime table>thead>tr>td
+{
+    font-size: .8125rem;
+    color: #525f7f;
+    line-height: 1.4em;
+    vertical-align: middle !important;
+    padding: .8rem 0;
+    border-top: 1px solid #ddd;
+    width: auto;
+    text-align: center
+}
+
+.node-system-packages>.main .cbi-value.cbi-value-last>div
+{
+    width: 100% !important
+}
+
+.node-system-packages .cbi-section-node .cbi-value
+{
+    padding: .3rem 1rem
+}
+
+.node-system-packages>.main .cbi-value .cbi-value-field input
+{
+    width: 100%
+}
+
+.node-system-leds .cbi-section em
+{
+    display: block
+}
+
+.node-status-iptables>.main div>.cbi-map>form
+{
+    position: static !important;
+    margin: 0 0 2rem 0;
+    padding: 2rem;
+    border: 0;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    font-family: inherit;
+    min-width: inherit;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: .375rem;
+    background-color: #FFF;
+    box-shadow: 0 0 2rem 0 rgba(136,152,170,0.15);
+    -webkit-overflow-scrolling: touch
+}
+
+.node-status-iptables>.main div>.cbi-map>form input[type="submit"]
+{
+    width: 100% !important;
+    margin: 0
+}
+
+.node-status-iptables>.main div>.cbi-map>form input[type="submit"]+input[type="submit"]
+{
+    margin-top: 1rem
+}
+.cbi-value input[type="text"]:has(+ img) {
+width:10rem !important
+}
+
+.node-services-vssr .status-info
+{
+    font-size: .75rem
+}
+
+.node-services-vssr .icon-con
+{
+    margin-top: .4rem
+}
+
+.node-services-vssr .icon-con img
+{
+    width: 2.3rem !important;
+    height: auto
+}
+}
+
+@media screen and (min-width:600px) {
+::-webkit-scrollbar {
+width:10px;
+height:10px
+}
+::-webkit-scrollbar, ::-webkit-scrollbar-corner {
+background:transparent
+}
+::-webkit-scrollbar-thumb {
+background:#9e9e9e
+}
+::-webkit-scrollbar-thumb:hover {
+background:#757575
+}
+::-webkit-scrollbar-thumb:active {
+background:#424242
+}
+}
+
+@media screen and (min-width:992px) {
+
+.cbi-value input[type="password"], .cbi-value input[type="text"]
+{
+    min-width: 15rem
+}
+
+.cbi-value-field .cbi-input-select
+{
+    min-width: 15rem
+}
+}
+
+@media screen and (min-width:1280px) {
+
+.cbi-value input[type="password"], .cbi-value input[type="text"]
+{
+    min-width: 22rem
+}
+
+.cbi-value-field .cbi-input-select
+{
+    min-width: 22rem
+}
+}
+
+@media screen and (min-width:1600px) {
+
+.cbi-value input[type="password"], .cbi-value input[type="text"]
+{
+    min-width: 25rem
+}
+
+.cbi-value-field .cbi-input-select
+{
+    min-width: 25rem
+}
+}

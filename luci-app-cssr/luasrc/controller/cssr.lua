@@ -40,7 +40,6 @@ function index()
     entry({'admin', 'services', 'cssr', 'allserver'}, call('get_servers')) -- 获取所有节点Json
     entry({'admin', 'services', 'cssr', 'subscribe'}, call('get_subscribe')) -- 执行订阅
     entry({'admin', 'services', 'cssr', 'flag'}, call('get_flag')) -- 获取节点国旗 iso code
-    entry({'admin', 'services', 'cssr', 'ip'}, call('check_ip')) -- 获取ip情况
     entry({'admin', 'services', 'cssr', 'switch'}, call('switch')) -- 设置节点为自动切换
     entry({'admin', 'services', 'cssr', 'delnode'}, call('del_node')) -- 删除某个节点
 
@@ -53,7 +52,7 @@ end
 function check()
 	local r=0
 	if CALL("nslookup www."..http.formvalue("url")..".com >/dev/null 2>&1")==0 then
-		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} www."..http.formvalue("url")..".com | awk '{printf ($1*1000)}'")
+		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} www."..http.formvalue("url")..".com | awk '{printf ($1*1000+0.5)}'")
 		if r~="0" then
 			r=EXEC("echo -n "..r.." | sed 's/\\..*//'")
 			if r=="0" then r="1" end
@@ -212,34 +211,6 @@ function get_cname(ip)
     return string.lower(res:get('country', 'names', 'zh-CN'))
 end
 
--- 获取当前代理状态 与节点ip
-function check_ip()
-    local e = {}
-    local d = {}
-    local cssr = require 'cssrutil'
-    local port = 80
-    local ip = cssr.wget('http://api.ipify.org/')
-    d.flag = 'un'
-    d.country = 'Unknown'
-    if (ip ~= '') then
-        local status, code = pcall(get_iso, ip)
-        if (status) then
-            d.flag = code
-        end
-        local status1, country = pcall(get_cname, ip)
-        if (status1) then
-            d.country = country
-        end
-    end
-    e.outboard = ip
-    e.outboardip = d
-    e.baidu = cssr.check_site('www.baidu.com', port)
-    e.taobao = cssr.check_site('www.taobao.com', port)
-    e.google = cssr.check_site('www.google.com', port)
-    e.youtube = cssr.check_site('www.youtube.com', port)
-    luci.http.prepare_content('application/json')
-    luci.http.write_json(e)
-end
 
 -- 获取节点国旗 iso code
 function get_flag()
