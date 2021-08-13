@@ -1,0 +1,11 @@
+{
+	"luci-app-ssrpro": {
+		"description": "Grant UCI access for luci-app-ssrpro",
+		"read": {
+			"uci": ["ssrpro"]
+		},
+		"write": {
+			"uci": ["ssrpro"]
+		}
+	}
+}

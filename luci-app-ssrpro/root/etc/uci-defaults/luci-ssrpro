@@ -1,0 +1,32 @@
+#!/bin/sh
+uci -q batch <<-EOF >/dev/null
+delete ucitrack.@ssrpro[-1]
+add ucitrack ssrpro
+set ucitrack.@ssrpro[-1].init=ssrpro
+commit ucitrack
+delete firewall.ssrpro
+set firewall.ssrpro=include
+set firewall.ssrpro.type=script
+set firewall.ssrpro.path=/var/etc/ssrpro.include
+set firewall.ssrpro.reload=1
+commit firewall
+EOF
+rm -rf /etc/config/ssrpro-opkg /etc/ssrpro/*opkg
+touch /etc/ssrpro/china_ssr.txt
+touch /etc/ssrpro/deny.list
+touch /etc/ssrpro/white.list
+touch /etc/ssrpro/black.list
+touch /etc/ssrpro/netflix.list
+touch /etc/ssrpro/netflixip.list
+touch /etc/ssrpro/gfw_base.conf
+touch /etc/ssrpro/gfw_list.conf
+touch /etc/ssrpro/oversea_list.conf
+touch /etc/ssrpro/ad.conf
+touch /etc/config/ssrpro
+if [ ! -s "/etc/config/ssrpro" ]; then
+/etc/init.d/ssrpro reset
+fi
+sed -i "s/option type 'vmess'"/"option type 'v2ray'\n\toption v2ray_protocol 'vmess'/g" /etc/config/ssrpro
+sed -i "s/option type 'vless'"/"option type 'v2ray'\n\toption v2ray_protocol 'vless'/g" /etc/config/ssrpro
+rm -rf /tmp/luci-modulecache /tmp/luci-indexcache
+exit 0
