@@ -162,7 +162,7 @@ start_dns() {
 	start_pdnsd() {
 		local usr_dns="$1"
 		local usr_port="$2"
-		if [ ! -f "$TMP_PATH/pdnsd/pdnsds.cache" ]; then
+		if [ ! -f "$TMP_PATH/pdnsds/pdnsds.cache" ]; then
 			mkdir -p $TMP_PATH/pdnsds
 			touch $TMP_PATH/pdnsds/pdnsds.cache
 			chown -R nobody:nogroup $TMP_PATH/pdnsds
