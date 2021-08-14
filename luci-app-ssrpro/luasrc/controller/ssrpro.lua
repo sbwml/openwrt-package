@@ -53,6 +53,21 @@ function check_net()
 	http.write_json({ret=r})
 
 end
+function act_status()
+    math.randomseed(os.time())
+    local e = {}
+
+    e.global = CALL('busybox ps -w | grep ssrpro- | grep -v grep  >/dev/null ') == 0
+
+    e.pdnsd = CALL('busybox ps -w | grep pdnsds | grep -v grep  >/dev/null ') == 0
+
+    e.udp = CALL('busybox ps -w | grep ssrpro-reudp | grep -v grep  >/dev/null') == 0
+
+    e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
+    http.prepare_content('application/json')
+    http.write_json(e)
+end
+
 function act_ping()
 	local e = {}
 	local domain = http.formvalue("domain")
@@ -86,20 +101,6 @@ function act_ping()
 	http.write_json(e)
 end
 
-function act_status()
-    math.randomseed(os.time())
-    local e = {}
-
-    e.global = CALL('busybox ps -w | grep ssrpro- | grep -v grep  >/dev/null ') == 0
-
-    e.pdnsd = CALL('busybox ps -w | grep pdnsds | grep -v grep  >/dev/null ') == 0
-
-    e.udp = CALL('busybox ps -w | grep ssrpro-reudp | grep -v grep  >/dev/null') == 0
-
-    e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
-    http.prepare_content('application/json')
-    http.write_json(e)
-end
 
 function refresh_data()
 	local set = http.formvalue("set")
