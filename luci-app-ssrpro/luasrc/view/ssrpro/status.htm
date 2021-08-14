@@ -378,7 +378,7 @@ word-spacing:-.43em
           <div class="img-con"> <img src="/luci-static/ssrpro/img/t4socks5.svg"> </div>
         </div>
         <div class="pure-u-3-5">
-          <h4 id="server_status">SOCKS5<br />
+          <h4 id="server_status">SERVER<br />
             <span class="red">
             <%:Not Running%>
             </span></h4>
@@ -422,7 +422,7 @@ word-spacing:-.43em
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_baidu">
-            <%:Baidu connection%>
+            <%:Baidu Delay%>
             <br/>
             <span id="baidu_status" class="yellow">
             <%:Touch Check%>
@@ -437,7 +437,7 @@ word-spacing:-.43em
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_github">
-            <%:Github connection%>
+            <%:Github Delay%>
             <br/>
             <span id="github_status" class="yellow">
             <%:Touch Check%>
@@ -452,7 +452,7 @@ word-spacing:-.43em
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_google">
-            <%:Google connection%>
+            <%:Google Delay%>
             <br/>
             <span id="google_status" class="yellow">
             <%:Touch Check%>
@@ -467,7 +467,7 @@ word-spacing:-.43em
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_youtube">
-            <%:Youtube connection%>
+            <%:Youtube Delay%>
             <br/>
             <span id="youtube_status" class="yellow">
             <%:Touch Check%>
@@ -503,9 +503,9 @@ word-spacing:-.43em
                     $("#pdnsd_status").html('PDNSD<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
                 if (data.server) {
-                    $("#server_status").html('SOCKS5<br><span class="green">' + RUNNING + '</span>');
+                    $("#server_status").html('SERVER<br><span class="green">' + RUNNING + '</span>');
                 } else {
-                    $("#server_status").html('SOCKS5<br><span class="red">' + NOT_RUNNING + '</span>');
+                    $("#server_status").html('SERVER<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
             }
         }

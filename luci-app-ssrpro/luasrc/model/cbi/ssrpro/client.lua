@@ -1,14 +1,18 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com> github.com/ywb94
--- Copyright (C) 2018 lean <coolsnowwolf@gmail.com> github.com/coolsnowwolf
--- Licensed to the public under the GNU General Public License v3.
-local m, s, sec, o, kcp_enable
-local uci = luci.model.uci.cursor()
-m = Map("ssrpro")
 
+local m, s, sec, o
+local uci = luci.model.uci.cursor()
+
+m = Map("ssrpro")
 m:section(SimpleSection).template = "ssrpro/status"
 
-
-
+local server_table = {}
+uci:foreach("ssrpro", "servers", function(s)
+	if s.alias then
+		server_table[s[".name"]] = "[%s]:%s" % {string.upper(s.v2ray_protocol or s.type), s.alias}
+	elseif s.server and s.server_port then
+		server_table[s[".name"]] = "[%s]:%s:%s" % {string.upper(s.v2ray_protocol or s.type), s.server, s.server_port}
+	end
+end)
 local key_table = {}
 for key, _ in pairs(server_table) do
 	table.insert(key_table, key)
@@ -17,7 +21,7 @@ end
 table.sort(key_table)
 
 -- [[ Global Setting ]]--
-s = m:section(TypedSection, "global", translate('Ssrpro Settings [Support SS/SSR/V2RAY/XRAY/TROJAN/NAIVEPROXY/SOCKS5/TUN etc.]'))
+s = m:section(TypedSection, "global", translate("Base Settings [Support SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN etc.]"))
 s.anonymous = true
 
 o = s:option(ListValue, "global_server", translate("Main Server"))
@@ -35,7 +39,7 @@ for _, key in pairs(key_table) do
 	o:value(key, server_table[key])
 end
 
-if uci:get_first("ssrpro", 'global', 'netflix_enable', '0') ~= '0' then
+if uci:get_first('ssrpro', 'global', 'netflix_enable', '0') ~= '0' then
 o = s:option(ListValue, "netflix_server", translate("Netflix Node"))
 o:value("nil", translate("Disable"))
 o:value("same", translate("Same as Global Server"))

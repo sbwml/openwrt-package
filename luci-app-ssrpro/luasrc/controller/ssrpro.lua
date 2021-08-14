@@ -1,6 +1,4 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com>
--- Licensed to the public under the GNU General Public License v3.
-module("luci.controller.ssrpro", package.seeall)
+module("luci.controller.ssrpro",package.seeall)
 local fs=require"nixio.fs"
 local http=require"luci.http"
 CALL=luci.sys.call
@@ -9,22 +7,22 @@ function index()
 	if not nixio.fs.access("/etc/config/ssrpro") then
 		call("act_reset")
 	end
-	local page
-	page = entry({"admin", "services", "ssrpro"}, alias("admin", "services", "ssrpro", "client"), _("bywall"), 10)
-	page.dependent = true
+
+	local page = entry({"admin", "services", "ssrpro"}, alias("admin", "services", "ssrpro", "client"), _("SSRPRO"), 1)
+	page.dependent = false
 	page.acl_depends = { "luci-app-ssrpro" }
 	entry({"admin", "services", "ssrpro", "client"}, cbi("ssrpro/client"), _("SSR Client"), 10).leaf = true
 	entry({"admin", "services", "ssrpro", "servers"}, arcombine(cbi("ssrpro/servers", {autoapply = true}), cbi("ssrpro/client-config")), _("Severs Nodes"), 20).leaf = true
-	entry({"admin", "services", "ssrpro", "control"}, cbi("ssrpro/control"), _("Access Control"), 30).leaf = true
+	entry({"admin", "services", "ssrpro", "control"}, cbi("ssrpro/control"), _("Access Control"), 40).leaf = true
 	entry({"admin", "services", "ssrpro", "advanced"}, cbi("ssrpro/advanced"), _("Advanced Settings"), 50).leaf = true
+
+	if luci.sys.call("which ssr-server >/dev/null")==0 or luci.sys.call("which ss-server >/dev/null")==0 or luci.sys.call("which microsocks >/dev/null")==0 then
 	entry({"admin", "services", "ssrpro", "server"}, arcombine(cbi("ssrpro/server"), cbi("ssrpro/server-config")), _("SSR Server"), 60).leaf = true
-	entry({"admin", "services", "ssrpro", "status"}, form("ssrpro/status"), _("Status"), 70).leaf = true
-	entry({"admin", "services", "ssrpro", "check"}, call("check_status"))
+	end
+        entry({'admin', 'services', 'ssrpro', 'log'}, cbi('ssrpro/log'), _('Log'), 70).leaf = true
 	entry({"admin", "services", "ssrpro", "checknet"}, call("check_net"))
 	entry({"admin", "services", "ssrpro", "refresh"}, call("refresh_data"))
 	entry({"admin", "services", "ssrpro", "subscribe"}, call("subscribe"))
-	entry({"admin", "services", "ssrpro", "checkport"}, call("check_port"))
-	entry({"admin", "services", "ssrpro", "log"}, cbi('ssrpro/log'), _("Log"), 80).leaf = true
 	entry({"admin", "services", "ssrpro", "run"}, call("act_status"))
 	entry({"admin", "services", "ssrpro", "ping"}, call("act_ping"))
 	entry({"admin", "services", "ssrpro", "reset"}, call("act_reset"))
@@ -38,30 +36,31 @@ end
 
 function subscribe()
 	CALL("/usr/bin/lua /usr/share/ssrpro/subscribe.lua >>/var/log/ssrpro.log")
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret = 1})
+	http.prepare_content("application/json")
+	http.write_json({ret = 1})
 end
 
 function check_net()
 	local r=0
 	if CALL("nslookup www."..http.formvalue("url")..".com >/dev/null 2>&1")==0 then
-		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} www."..http.formvalue("url")..".com | awk '{printf ($1*1000+0.5)}'")
-		if r~~="0" then
+		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} www."..http.formvalue("url")..".com | awk '{printf ($1*1000)}'")
+		if r~="0" then
 			r=EXEC("echo -n "..r.." | sed 's/\\..*//'")
 			if r=="0" then r="1" end
 		end
 	end
 	http.prepare_content("application/json")
 	http.write_json({ret=r})
+
 end
 function act_ping()
 	local e = {}
-	local domain = luci.http.formvalue("domain")
-	local port = luci.http.formvalue("port")
-	local transport = luci.http.formvalue("transport")
-	local wsPath = luci.http.formvalue("wsPath")
-	local tls = luci.http.formvalue("tls")
-	e.index = luci.http.formvalue("index")
+	local domain = http.formvalue("domain")
+	local port = http.formvalue("port")
+	local transport = http.formvalue("transport")
+	local wsPath = http.formvalue("wsPath")
+	local tls = http.formvalue("tls")
+	e.index = http.formvalue("index")
 	local iret = CALL("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
 	if transport == "ws" then
 		local prefix = tls=='1' and "https://" or "http://"
@@ -83,17 +82,9 @@ function act_ping()
 	if (iret == 0) then
 		CALL(" ipset del ss_spec_wan_ac " .. domain)
 	end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(e)
+	http.prepare_content("application/json")
+	http.write_json(e)
 end
-
-function check_status()
-	local e = {}
-	e.ret = CALL("/usr/bin/ssr-check www." .. luci.http.formvalue("set") .. ".com 80 3 1")
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(e)
-end
-
 
 function act_status()
     math.randomseed(os.time())
@@ -106,71 +97,41 @@ function act_status()
     e.udp = CALL('busybox ps -w | grep ssrpro-reudp | grep -v grep  >/dev/null') == 0
 
     e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
-    luci.http.prepare_content('application/json')
-    luci.http.write_json(e)
+    http.prepare_content('application/json')
+    http.write_json(e)
 end
 
 function refresh_data()
-	local set = luci.http.formvalue("set")
+	local set = http.formvalue("set")
 	local retstring = loadstring("return " .. EXEC("/usr/bin/lua /usr/share/ssrpro/update.lua " .. set))()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(retstring)
-end
-
-function check_port()
-	local retstring = "<br /><br />"
-	local s
-	local server_name = ""
-	local uci = luci.model.uci.cursor()
-	local iret = 1
-	uci:foreach("ssrpro", "servers", function(s)
-		if s.alias then
-			server_name = s.alias
-		elseif s.server and s.server_port then
-			server_name = "%s:%s" % {s.server, s.server_port}
-		end
-		iret = CALL("ipset add ss_spec_wan_ac " .. s.server .. " 2>/dev/null")
-		socket = nixio.socket("inet", "stream")
-		socket:setopt("socket", "rcvtimeo", 3)
-		socket:setopt("socket", "sndtimeo", 3)
-		ret = socket:connect(s.server, s.server_port)
-		if tostring(ret) == "true" then
-			socket:close()
-			retstring = retstring .. "<font color = 'green'>[" .. server_name .. "] OK.</font><br />"
-		else
-			retstring = retstring .. "<font color = 'red'>[" .. server_name .. "] Error.</font><br />"
-		end
-		if iret == 0 then
-			CALL("ipset del ss_spec_wan_ac " .. s.server)
-		end
-	end)
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret = retstring})
+	http.prepare_content("application/json")
+	http.write_json(retstring)
 end
 
 function act_reset()
 	CALL("/etc/init.d/ssrpro reset &")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
+	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
 end
 
 function act_restart()
 	CALL("/etc/init.d/ssrpro restart &")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
+	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
 end
 
 function act_delete()
 	CALL("/etc/init.d/ssrpro restart &")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro", "servers"))
+	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro", "servers"))
 end
 
 function act_cache()
 	local e = {}
 	e.ret = CALL("pdnsd-ctl -c /var/etc/ssrpro/pdnsds empty-cache >/dev/null")
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(e)
+	http.prepare_content("application/json")
+	http.write_json(e)
 end
+
 function getlog()
-	logfile="/var/log/ssrpro.log""
+	logfile="/var/log/ssrpro.log"
 	if not fs.access(logfile) then
 		http.write("")
 		return

@@ -1,7 +1,36 @@
+local cssr = 'ssrpro'
 local uci = luci.model.uci.cursor()
 local server_table = {}
 
-uci:foreach("ssrpro", "servers", function(s)
+local gfwmode = 0
+local gfw_count = 0
+local ip_count = 0
+local ad_count = 0
+local server_count = 0
+
+if nixio.fs.access('/etc/ssrpro/gfw_list.conf') then
+    gfwmode = 1
+end
+local sys = require 'luci.sys'
+if gfwmode == 1 then
+    gfw_count = tonumber(sys.exec('cat /etc/ssrpro/gfw_list.conf | wc -l')) / 2
+    if nixio.fs.access('/etc/ssrpro/ad.conf') then
+        ad_count = tonumber(sys.exec('cat /etc/ssrpro/ad.conf | wc -l'))
+    end
+end
+
+if nixio.fs.access('/etc/ssrpro/china_ssr.txt') then
+    ip_count = sys.exec('cat /etc/ssrpro/china_ssr.txt | wc -l')
+end
+
+uci:foreach(
+    'ssrpro',
+    'servers',
+    function(s)
+        server_count = server_count + 1
+    end
+)
+uci:foreach(cssr, "servers", function(s)
 	if s.alias then
 		server_table[s[".name"]] = "[%s]:%s" % {string.upper(s.v2ray_protocol or s.type), s.alias}
 	elseif s.server and s.server_port then
@@ -16,7 +45,7 @@ end
 
 table.sort(key_table)
 
-m = Map("ssrpro")
+m = Map(cssr)
 -- [[ global ]]--
 s = m:section(TypedSection, "global", translate("Server failsafe auto swith and custom update settings"))
 s.anonymous = true
@@ -32,7 +61,7 @@ o.default = "1"
 o = s:option(Value, "switch_time", translate("Switch check cycly(second)"))
 o.datatype = "uinteger"
 o:depends("enable_switch", "1")
-o.default = 667
+o.default = 3600
 
 o = s:option(Value, "switch_timeout", translate("Check timout(second)"))
 o.datatype = "uinteger"
@@ -81,6 +110,24 @@ o = s:option(Button, "reset", translate("Reset to defaults"))
 o.rawhtml = true
 o.template = "ssrpro/reset"
 
+
+o = s:option(Button, 'gfw_data', translate('GFW List Data'))
+o.rawhtml = true
+o.template = 'ssrpro/refresh'
+o.value = tostring(math.ceil(gfw_count)) .. ' ' .. translate('Records')
+
+o = s:option(Button, 'ip_data', translate('China IP Data'))
+o.rawhtml = true
+o.template = 'ssrpro/refresh'
+o.value = ip_count .. ' ' .. translate('Records')
+
+if uci:get_first(cssr, 'global', 'adblock', '') == '1' then
+    o = s:option(Button, 'ad_data', translate('Advertising Data'))
+    o.rawhtml = true
+    o.template = 'ssrpro/refresh'
+    o.value = ad_count .. ' ' .. translate('Records')
+end
+
 -- [[ SOCKS5 Proxy ]]--
 s = m:section(TypedSection, "socks5_proxy", translate("Global SOCKS5 Proxy Server"))
 s.anonymous = true
@@ -98,5 +145,7 @@ o = s:option(Value, "local_port", translate("Local Port"))
 o.datatype = "port"
 o.default = 1080
 o.rmempty = false
+
+
 
 return m
