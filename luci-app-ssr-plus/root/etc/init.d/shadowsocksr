@@ -339,7 +339,7 @@ gen_config_file() { #server1 type2 code3 local_port4 socks_port5 threads5
 	csocks)
 		#host1=$(uci get network.@lan[0].ipaddr 2>/dev/null) |host1="192.168.1.254"
 		local Server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
-		/usr/share/shadowsocksr/genred2config.sh $config_file $2 $mode $4  127.0.0.1  $Server_port $(uci_get_by_name $1 auth_enable 0)
+		/usr/share/shadowsocksr/genred2config.sh $config_file $2 $mode $4  127.0.0.1  $Server_port
 		/usr/share/shadowsocksr/genconfig_csocks.sh $(uci_get_by_name $1 server)  $(uci_get_by_name $1 out_addr) $(uci_get_by_name $1 tls_ip) $(uci_get_by_name $1 server_port) $(uci_get_by_name $1 vmess_id) $csocks_config_file 
 	         ln_start_bin $(first_type csocks) csocks $csocks_config_file
 		;;
