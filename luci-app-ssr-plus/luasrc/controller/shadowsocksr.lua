@@ -24,7 +24,7 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "refresh"}, call("refresh_data"))
 	entry({"admin", "services", "shadowsocksr", "subscribe"}, call("subscribe"))
 	entry({"admin", "services", "shadowsocksr", "checkport"}, call("check_port"))
-	entry({"admin", "services", "shadowsocksr", "log"}, cbi('shadowsocksr/log'), _("Log"), 80).leaf = true
+	entry({"admin", "services", "shadowsocksr", "log"}, cbi("shadowsocksr/log"), _("Log"), 80).leaf = true
 	entry({"admin", "services", "shadowsocksr", "run"}, call("act_status"))
 	entry({"admin", "services", "shadowsocksr", "ping"}, call("act_ping"))
 	entry({"admin", "services", "shadowsocksr", "reset"}, call("act_reset"))
@@ -46,7 +46,7 @@ function check_net()
 	local r=0
 	if CALL("nslookup www."..http.formvalue("url")..".com >/dev/null 2>&1")==0 then
 		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} www."..http.formvalue("url")..".com | awk '{printf ($1*1000+0.5)}'")
-		if r~~="0" then
+		if r~="0" then
 			r=EXEC("echo -n "..r.." | sed 's/\\..*//'")
 			if r=="0" then r="1" end
 		end
