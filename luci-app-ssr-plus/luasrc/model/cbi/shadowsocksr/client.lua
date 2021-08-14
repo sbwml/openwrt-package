@@ -3,7 +3,7 @@
 -- Licensed to the public under the GNU General Public License v3.
 local m, s, sec, o, kcp_enable
 local uci = luci.model.uci.cursor()
-m = Map("shadowsocksr", translate("ShadowSocksR Plus+ Settings"), translate("<h3>Support SS/SSR/V2RAY/XRAY/TROJAN/NAIVEPROXY/SOCKS5/TUN etc.</h3>"))
+m = Map("shadowsocksr")
 
 m:section(SimpleSection).template = "shadowsocksr/status"
 
@@ -24,7 +24,7 @@ end
 table.sort(key_table)
 
 -- [[ Global Setting ]]--
-s = m:section(TypedSection, "global")
+s = m:section(TypedSection, "global", translate("Base Settings [Support SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN etc.]"))
 s.anonymous = true
 
 o = s:option(ListValue, "global_server", translate("Main Server"))

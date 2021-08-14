@@ -10,7 +10,7 @@ function index()
 		call("act_reset")
 	end
 	local page
-	page = entry({"admin", "services", "shadowsocksr"}, alias("admin", "services", "shadowsocksr", "client"), _("bywall"), 10)
+	page = entry({"admin", "services", "shadowsocksr"}, alias("admin", "services", "shadowsocksr", "client"), _("SSR Plus+"), 1)
 	page.dependent = true
 	page.acl_depends = { "luci-app-ssr-plus" }
 	entry({"admin", "services", "shadowsocksr", "client"}, cbi("shadowsocksr/client"), _("SSR Client"), 10).leaf = true
@@ -31,7 +31,6 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "restart"}, call("act_restart"))
 	entry({"admin", "services", "shadowsocksr", "delete"}, call("act_delete"))
 	entry({"admin", "services", "shadowsocksr", "cache"}, call("act_cache"))
-
 	 entry({"admin","services","shadowsocksr","getlog"},call("getlog")) 
          entry({"admin","services","shadowsocksr","dellog"},call("dellog")) 
 end
@@ -54,6 +53,23 @@ function check_net()
 	http.prepare_content("application/json")
 	http.write_json({ret=r})
 end
+
+function act_status()
+    math.randomseed(os.time())
+    local e = {}
+
+    e.global = CALL('busybox ps -w | grep ssr-retcp | grep -v grep  >/dev/null ') == 0
+
+    e.pdnsd = CALL('busybox ps -w | grep pdnsd | grep -v grep  >/dev/null ') == 0
+
+    e.udp = CALL('busybox ps -w | grep -ssr-reudp | grep -v grep  >/dev/null') == 0
+
+    e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
+    luci.http.prepare_content('application/json')
+    luci.http.write_json(e)
+
+end
+
 function act_ping()
 	local e = {}
 	local domain = luci.http.formvalue("domain")
@@ -62,11 +78,11 @@ function act_ping()
 	local wsPath = luci.http.formvalue("wsPath")
 	local tls = luci.http.formvalue("tls")
 	e.index = luci.http.formvalue("index")
-	local iret = CALL("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
+	local iret = luci.sys.call("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
 	if transport == "ws" then
 		local prefix = tls=='1' and "https://" or "http://"
 		local address = prefix..domain..':'..port..wsPath
-		local result = EXEC("curl --http1.1 -m 2 -ksN -o /dev/null -w 'time_connect=%{time_connect}\nhttp_code=%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==' -H 'Sec-WebSocket-Version: 13' "..address)
+		local result = luci.sys.exec("curl --http1.1 -m 2 -ksN -o /dev/null -w 'time_connect=%{time_connect}\nhttp_code=%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==' -H 'Sec-WebSocket-Version: 13' "..address)
 		e.socket = string.match(result,"http_code=(%d+)")=="101"
 		e.ping = tonumber(string.match(result, "time_connect=(%d+.%d%d%d)"))*1000
 	else
@@ -75,13 +91,13 @@ function act_ping()
 		socket:setopt("socket", "sndtimeo", 3)
 		e.socket = socket:connect(domain, port)
 		socket:close()
-		-- 	e.ping = EXEC("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'" % domain)
+		-- 	e.ping = luci.sys.exec("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'" % domain)
 		-- 	if (e.ping == "") then
-		e.ping = EXEC(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, domain))
+		e.ping = luci.sys.exec(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, domain))
 		-- 	end
 	end
 	if (iret == 0) then
-		CALL(" ipset del ss_spec_wan_ac " .. domain)
+		luci.sys.call(" ipset del ss_spec_wan_ac " .. domain)
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
@@ -89,30 +105,14 @@ end
 
 function check_status()
 	local e = {}
-	e.ret = CALL("/usr/bin/ssr-check www." .. luci.http.formvalue("set") .. ".com 80 3 1")
+	e.ret = luci.sys.call("/usr/bin/ssr-check www." .. luci.http.formvalue("set") .. ".com 80 3 1")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end
 
-
-function act_status()
-    math.randomseed(os.time())
-    local e = {}
-
-    e.global = CALL('busybox ps -w | grep ssrplus- | grep -v grep  >/dev/null ') == 0
-
-    e.pdnsd = CALL('busybox ps -w | grep pdnsds | grep -v grep  >/dev/null ') == 0
-
-    e.udp = CALL('busybox ps -w | grep -ssrplus-reudp | grep -v grep  >/dev/null') == 0
-
-    e.shunt= CALL('busybox ps -w | grep shunt- | grep -v grep  >/dev/null') == 0
-    luci.http.prepare_content('application/json')
-    luci.http.write_json(e)
-end
-
 function refresh_data()
 	local set = luci.http.formvalue("set")
-	local retstring = loadstring("return " .. EXEC("/usr/bin/lua /usr/share/shadowsocksr/update.lua " .. set))()
+	local retstring = loadstring("return " .. luci.sys.exec("/usr/bin/lua /usr/share/shadowsocksr/update.lua " .. set))()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(retstring)
 end
@@ -129,7 +129,7 @@ function check_port()
 		elseif s.server and s.server_port then
 			server_name = "%s:%s" % {s.server, s.server_port}
 		end
-		iret = CALL("ipset add ss_spec_wan_ac " .. s.server .. " 2>/dev/null")
+		iret = luci.sys.call("ipset add ss_spec_wan_ac " .. s.server .. " 2>/dev/null")
 		socket = nixio.socket("inet", "stream")
 		socket:setopt("socket", "rcvtimeo", 3)
 		socket:setopt("socket", "sndtimeo", 3)
@@ -141,7 +141,7 @@ function check_port()
 			retstring = retstring .. "<font color = 'red'>[" .. server_name .. "] Error.</font><br />"
 		end
 		if iret == 0 then
-			CALL("ipset del ss_spec_wan_ac " .. s.server)
+			luci.sys.call("ipset del ss_spec_wan_ac " .. s.server)
 		end
 	end)
 	luci.http.prepare_content("application/json")
@@ -149,23 +149,23 @@ function check_port()
 end
 
 function act_reset()
-	CALL("/etc/init.d/shadowsocksr reset &")
+	luci.sys.call("/etc/init.d/shadowsocksr reset &")
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr"))
 end
 
 function act_restart()
-	CALL("/etc/init.d/shadowsocksr restart &")
+	luci.sys.call("/etc/init.d/shadowsocksr restart &")
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr"))
 end
 
 function act_delete()
-	CALL("/etc/init.d/shadowsocksr restart &")
+	luci.sys.call("/etc/init.d/shadowsocksr restart &")
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
 end
 
 function act_cache()
 	local e = {}
-	e.ret = CALL("pdnsd-ctl -c /var/etc/ssrplus/pdnsds empty-cache >/dev/null")
+	e.ret = luci.sys.call("pdnsd-ctl -c /var/etc/ssrplus/pdnsd empty-cache >/dev/null")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end

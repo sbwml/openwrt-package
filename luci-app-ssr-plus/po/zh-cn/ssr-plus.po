@@ -13,12 +13,17 @@ msgstr "停用"
 msgid "Log"
 msgstr "日志"
 
-msgid "ShadowSocksR is running"
-msgstr "ShadowSocksR 客户端运行中"
+msgid "Running"
+msgstr "运行中"
 
-msgid "ShadowSocksR is not running"
-msgstr "ShadowSocksR 客户端未运行"
+msgid "Not Running"
+msgstr "未运行"
 
+msgid "Game Mode"
+msgstr "游戏模式"
+
+msgid "Touch Check"
+msgstr "点击检查"
 msgid "Global Setting"
 msgstr "全局设置"
 
@@ -147,6 +152,12 @@ msgstr "ShadowSocksR 服务端运行中"
 
 msgid "ShadowSocksR Server is not running"
 msgstr "ShadowSocksR 服务端未运行"
+
+msgid "Clear Log"
+msgstr "清除日志"
+ 
+msgid "IP Address"
+msgstr "IP位置"
 
 msgid "Enable Server"
 msgstr "启动服务端"
@@ -412,8 +423,8 @@ msgstr "GFW列表"
 msgid "ShadowSocksR Plus+ Settings"
 msgstr "ShadowSocksR Plus+ 设置"
 
-msgid "<h3>Support SS/SSR/V2RAY/XRAY/TROJAN/NAIVEPROXY/SOCKS5/TUN etc.</h3>"
-msgstr "<h3>支持 SS/SSR/V2RAY/XRAY/TROJAN/NAIVEPROXY/SOCKS5/TUN 等协议</h3>"
+msgid "Base Settings [Support SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN etc.]"
+msgstr "基本设置 [支持SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN 等协议]"
 
 msgid "Main Server"
 msgstr "主服务器"
@@ -495,6 +506,9 @@ msgstr "每行一个域名，无需写前面的 HTTP(S):// ，提交后即时生
 
 msgid "Servers subscription and manage"
 msgstr "服务器节点订阅与管理"
+
+msgid "Subscription"
+msgstr "节点订阅"
 
 msgid "Through proxy update list, Not Recommended"
 msgstr "通过路由器自身代理更新订阅"
@@ -669,6 +683,18 @@ msgstr "本机服务端"
 
 msgid "Global SOCKS5 Proxy Server"
 msgstr "SOCKS5 代理服务端（全局）"
+
+msgid "Baidu Delay"
+msgstr "百度延时"
+
+msgid "Google Delay"
+msgstr "谷歌延时"
+
+msgid "Github Delay"
+msgstr "Github延时"
+
+msgid "Youtube Delay"
+msgstr "Youtube延时"
 
 msgid "warning! Please do not reuse the port!"
 msgstr "警告！请不要重复使用端口！"

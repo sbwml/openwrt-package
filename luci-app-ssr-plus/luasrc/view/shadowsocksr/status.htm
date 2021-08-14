@@ -332,7 +332,7 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t1tcp.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t1tcp.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="tcp_status">
@@ -347,7 +347,7 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t2udp.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t2udp.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="udp_status">
@@ -362,7 +362,7 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t3pdnsd.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t3pdnsd.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="pdnsd_status">PDNSD<br />
@@ -375,10 +375,10 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t4socks5.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t4socks5.svg"> </div>
         </div>
         <div class="pure-u-3-5">
-          <h4 id="socks5_status">SOCKS5<br />
+          <h4 id="server_status">SERVER<br />
             <span class="red">
             <%:Not Running%>
             </span></h4>
@@ -388,11 +388,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check" onclick="check_ip(0)">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t5ip.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t5ip.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_ip0"> <span  id="ip0_addr">
-            <%:国内IP%>
+            <%:IP Address%>
             </span> <br/>
             <span id="ip0_status" class="yellow">
             <%:Touch Check%>
@@ -403,11 +403,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check" onclick="check_ip(1)">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t6ipw.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t6ipw.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_ip1"> <span  id="ip1_addr">
-            <%:国外IP%>
+            <%:IP Address%>
             </span> <br/>
             <span id="ip1_status" class="yellow">
             <%:Touch Check%>
@@ -418,11 +418,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check" onclick="check_net('baidu')">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t7baidu.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t7baidu.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_baidu">
-            <%:Baidu connection%>
+            <%:Baidu Delay%>
             <br/>
             <span id="baidu_status" class="yellow">
             <%:Touch Check%>
@@ -433,11 +433,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check"  onclick="check_net('github')">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t8github.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t8github.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_github">
-            <%:Github connection%>
+            <%:Github Delay%>
             <br/>
             <span id="github_status" class="yellow">
             <%:Touch Check%>
@@ -448,11 +448,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check" onclick="check_net('google')">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t9google.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t9google.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_google">
-            <%:Google connection%>
+            <%:Google Delay%>
             <br/>
             <span id="google_status" class="yellow">
             <%:Touch Check%>
@@ -463,11 +463,11 @@ word-spacing:-.43em
     <div class="pure-u-1-4 check"  onclick="check_net('youtube')">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/shadowsocksr/img/t10youtube.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/ssrplus/img/t10youtube.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_youtube">
-            <%:Youtube connection%>
+            <%:Youtube Delay%>
             <br/>
             <span id="youtube_status" class="yellow">
             <%:Touch Check%>
@@ -502,10 +502,10 @@ word-spacing:-.43em
                 } else {
                     $("#pdnsd_status").html('PDNSD<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
-                if (data.shunt) {
-                    $("#socks5_status").html('SOCKS5<br><span class="green">' + RUNNING + '</span>');
+                if (data.server) {
+                    $("#server_status").html('SERVER<br><span class="green">' + RUNNING + '</span>');
                 } else {
-                    $("#socks5_status").html('SOCKS5<br><span class="red">' + NOT_RUNNING + '</span>');
+                    $("#server_status").html('SERVER<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
             }
         }
@@ -558,7 +558,7 @@ word-spacing:-.43em
             getIpipnetIP: () => {
                 IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
-                        let data = resp.data.replace('当前 IP：', '').split(' 来自于：');
+                        let data = resp.data.replace('碌卤脟掳 IP拢潞', '').split(' 脌麓脳脭脫脷拢潞');
                         $$.getElementById('ip0_status').className="green";
                         $$.getElementById('ip0_status').innerHTML = `${data[0]}`;
                         $$.getElementById('ip0_addr').innerHTML = `${data[1]}`;
