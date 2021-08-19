@@ -558,7 +558,7 @@ word-spacing:-.43em
             getIpipnetIP: () => {
                 IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
-                        let data = resp.data.replace('µ±Ç° IP£º', '').split(' À´×ÔÓÚ£º');
+                        let data = resp.data.replace('当前 IP：', '').split(' 来自于：');
                         $$.getElementById('ip0_status').className="green";
                         $$.getElementById('ip0_status').innerHTML = `${data[0]}`;
                         $$.getElementById('ip0_addr').innerHTML = `${data[1]}`;
