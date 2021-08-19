@@ -24,6 +24,7 @@ msgstr "游戏模式"
 
 msgid "Touch Check"
 msgstr "点击检查"
+
 msgid "Global Setting"
 msgstr "全局设置"
 
