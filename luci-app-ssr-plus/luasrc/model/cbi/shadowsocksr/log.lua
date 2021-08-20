@@ -6,6 +6,6 @@ f.submit=false
 t=f:field(TextValue,"conf")
 t.rmempty=true
 t.rows=20
-t.template="ssrpro/log"
+t.template="shadowsocksr/log"
 t.readonly="readonly"
 return f
