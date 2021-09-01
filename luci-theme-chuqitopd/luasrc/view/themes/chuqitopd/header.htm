@@ -236,7 +236,14 @@
 <body class="lang_<%=luci.i18n.context.lang%> <%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
 
 <div class="main">
-
+    <div style="" class="loading">
+        <div class="sk-folding-cube">
+            <div class="sk-cube1 sk-cube"></div>
+            <div class="sk-cube2 sk-cube"></div>
+            <div class="sk-cube4 sk-cube"></div>
+            <div class="sk-cube3 sk-cube"></div>
+        </div>
+    </div>
     <div class="main-left">
         <div class="sidenav-header d-flex align-items-center">
             <a class="brand" href="#"><%=boardinfo.hostname or "?"%>
@@ -254,28 +261,26 @@
         <% render_topmenu() %>
     </div>
 	<div class="main-right">
-			<hr/>
-						<div id="indicators" class="pull-right">
-							<% render_changes() %>
-							<span data-indicator="poll-status" id="xhr_poll_status" style="display:none"
-								onclick="XHR.running() ? XHR.halt() : XHR.run()">
-								<span class="" id="xhr_poll_status_on"><span
-										class="mobile-hide"><%:Auto Refresh%></span> <%:on%></span>
-								<span class="" id="xhr_poll_status_off" style="display:none"><span
-										class="mobile-hide"><%:Auto Refresh%></span> <%:off%></span>
-							</span>
-						</div>
             <header class="bg-primary">
                 <div class="fill">
                     <div class="container">
                         <a class="showSide"></a>
-                        <a class="brand" href="#"><%=boardinfo.hostname or "?"%></a>
-
+                        <a class="brand" href="#"><%=boardinfo.hostname or "?"%><img width="30"  src="<%=media%>/ue409.png"></a>
+            <div class="ml-auto">
+                        <div class="pull-right">
+                            <% render_changes() %>
+                            <span id="xhr_poll_status" style="display:none" onclick="XHR.running() ? XHR.halt() : XHR.run()">
+                                <span class="label success" id="xhr_poll_status_on"><span class="mobile-hide"><%:Auto Refresh%></span> <%:on%></span>
+                                <span class="label" id="xhr_poll_status_off" style="display:none"><span class="mobile-hide"><%:Auto Refresh%></span> <%:off%></span>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </header>
 		<div class="darkMask"></div>
-
+		<% if bgcount > 0 then %>
+		<div class="login-bg" style="background-image:url(<%=media%>/img/bg<%=math.random(1,bgcount)%>.jpg)"></div>
+		<% end %>
 		<div id="maincontent">
 			<div class="container">
 				<%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
