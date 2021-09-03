@@ -7,7 +7,7 @@
 rm -Rf /var/luci-*cache*
 
 uci batch <<-EOF
-	set luci.themes.CHUQi=/luci-static/chuqi
+	set luci.themes.chuqi=/luci-static/chuqi
 	set luci.main.mediaurlbase=/luci-static/chuqi
 	commit luci
 EOF
