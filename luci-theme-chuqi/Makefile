@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 THEME_NAME:=chuqi
-THEME_TITLE:=CHUQi Theme
+THEME_TITLE:=chuqi Theme
 
 PKG_NAME:=luci-theme-$(THEME_NAME)
 PKG_VERSION:=1.1.8
@@ -14,7 +14,7 @@ PKG_RELEASE:=20210902
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
-define Package/luci-theme-$(THEME_NAME)/postinst
+define Package/luci-theme-chuqi/postinst
 #!/bin/sh
 
 rm -Rf /var/luci-modulecache
