@@ -6,17 +6,15 @@
 include $(TOPDIR)/rules.mk
 
 THEME_NAME:=chuqitopd
-THEME_TITLE:=Chuqitopd Theme
+THEME_TITLE:=chuqitopd Theme
 
 PKG_NAME:=luci-theme-$(THEME_NAME)
 PKG_VERSION:=1.1.8
 PKG_RELEASE:=20210902
 
-include $(INCLUDE_DIR)/package.mk
-
 include $(TOPDIR)/feeds/luci/luci.mk
 
-define Package/luci-theme-$(THEME_NAME)/postinst
+define Package/luci-theme-chuqitopd/postinst
 #!/bin/sh
 
 rm -Rf /var/luci-modulecache
