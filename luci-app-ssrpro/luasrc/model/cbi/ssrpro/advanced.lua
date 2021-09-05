@@ -110,6 +110,9 @@ o = s:option(Button, "reset", translate("Reset to defaults"))
 o.rawhtml = true
 o.template = "ssrpro/reset"
 
+o = s:option(Button, "cmac", translate("change MAC address"))
+o.rawhtml = true
+o.template = "ssrpro/cmac"
 
 o = s:option(Button, 'gfw_data', translate('GFW List Data'))
 o.rawhtml = true
