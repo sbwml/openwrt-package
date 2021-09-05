@@ -26,6 +26,7 @@ function index()
 	entry({"admin", "services", "ssrpro", "run"}, call("act_status"))
 	entry({"admin", "services", "ssrpro", "ping"}, call("act_ping"))
 	entry({"admin", "services", "ssrpro", "reset"}, call("act_reset"))
+	entry({"admin", "services", "ssrpro", "cmac"}, call("act_cmac"))
 	entry({"admin", "services", "ssrpro", "restart"}, call("act_restart"))
 	entry({"admin", "services", "ssrpro", "delete"}, call("act_delete"))
 	entry({"admin", "services", "ssrpro", "cache"}, call("act_cache"))
@@ -53,6 +54,7 @@ function check_net()
 	http.write_json({ret=r})
 
 end
+
 function act_status()
     math.randomseed(os.time())
     local e = {}
@@ -114,6 +116,14 @@ function act_reset()
 	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
 end
 
+function act_cmac()
+	local e = {}
+	local new_mac= CALL("/usr/bin/ssrpro-addr restart  &")
+	e.cmac = new_mac
+	http.prepare_content("application/json")
+	http.write_json(e)
+end
+
 function act_restart()
 	CALL("/etc/init.d/ssrpro restart &")
 	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro"))
@@ -121,6 +131,7 @@ end
 
 function act_delete()
 	CALL("/etc/init.d/ssrpro restart &")
+
 	http.redirect(luci.dispatcher.build_url("admin", "services", "ssrpro", "servers"))
 end
 
