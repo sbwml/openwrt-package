@@ -419,7 +419,7 @@ msgid "GFW List"
 msgstr "GFW列表"
 
 msgid "Base Settings [Support SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN etc.]"
-msgstr "基本设置 [支持 SS|SSR|V2RAY|XRAY|TROJAN|NAIVEPROXY|SOCKS5|TUN..]"
+msgstr "基本设置"
 
 msgid "Main Server"
 msgstr "主服务器"
@@ -446,7 +446,7 @@ msgid "Auto Update Server subscription, GFW list and CHN route"
 msgstr "自动更新服务器订阅、GFW列表和 CHN路由表"
 
 msgid "Subscribe URL"
-msgstr "SS/SSR/V2/TROJAN订阅URL"
+msgstr "订阅URL"
 
 msgid "Subscribe Filter Words"
 msgstr "订阅节点关键字过滤"
@@ -500,7 +500,7 @@ msgid "Please refer to the following writing"
 msgstr "每行一个域名，无需写前面的 HTTP(S):// ，提交后即时生效"
 
 msgid "Servers subscription and manage"
-msgstr "服务器节点订阅管理（支持SSR/V2ray 订阅）"
+msgstr "服务器节点订阅管理"
 
 msgid "Subscription"
 msgstr "节点订阅"
