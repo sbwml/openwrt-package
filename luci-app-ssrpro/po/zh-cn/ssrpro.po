@@ -757,6 +757,9 @@ msgstr "重置完成"
 msgid "Perform change mac"
 msgstr "正在更换MAC"
 
+msgid "change MAC address"
+msgstr "点击更换WAN口MAC地址"
+
 msgid "Change mac complete"
 msgstr "更换MAC完成"
 
