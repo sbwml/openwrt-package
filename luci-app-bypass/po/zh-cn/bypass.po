@@ -16,12 +16,18 @@ msgstr "Bypass 客户端未运行"
 msgid "Main Server"
 msgstr "主服务器"
 
+msgid "Client"
+msgstr "客户端"
+
 msgid "Enable"
 msgstr "启用"
 
 msgid "Disable"
 msgstr "停用"
 
+
+msgid "Game Mode"
+msgstr "游戏模式"
 msgid "Game Mode UDP Server"
 msgstr "游戏模式UDP中继服务器"
 
@@ -31,8 +37,89 @@ msgstr "与全局服务器相同"
 msgid "Load Netflix IP Range"
 msgstr "加载Netflix IP范围"
 
+
+msgid "Youtube Server"
+msgstr "Youtube服务器"
+
+msgid "Custom Server"
+msgstr "自定义服务器"
+
+msgid "Telegram Server"
+msgstr "Telegram服务器"
+
+
 msgid "Netflix Server"
-msgstr "Netflix 分流服务器"
+msgstr "Netflix服务器"
+
+msgid "Youtube Resolve Dns Mode"
+msgstr "Youtube解析Dns模式"
+
+msgid "Netflix Resolve Dns Mode"
+msgstr "Netflix解析Dns模式"
+
+msgid "Custom Server Resolve Dns Mode"
+msgstr "自定义解析Dns模式"
+
+msgid "Custom Server DoH"
+msgstr "自定义DoH服务器"
+
+msgid "Custom Server DNS"
+msgstr "自定义DNS服务器"
+
+msgid "Forward Youtube Proxy through Main Proxy"
+msgstr "通过主代理转发Youtube代理"
+
+
+msgid "Forward Custom Proxy through Main Proxy"
+msgstr "通过主代理转发自定义代理"
+
+
+msgid "Forward Telegram Proxy through Main Proxy"
+msgstr "通过主代理转发Telegram代理"
+
+msgid "Do not use the same DNS server as the Foreign DNS"
+msgstr "不要使用与外部DNS相同的DNS服务器"
+
+msgid "Do not use the same DNS server as the Foreign DNS"
+msgstr "不要使用与外部DNS相同的DNS服务器"
+
+msgid "Do not use the same DNS server as the Foreign DNS or Youtube DNS"
+msgstr "不要使用与外部DNS或Youtube DNS相同的DNS服务器"
+
+msgid "Do not use the same DNS server as the Foreign DNS or Youtube DNS"
+msgstr "不要使用与外部DNS或Youtube DNS相同的DNS服务器"
+msgid "Do not use the same DNS server as the Foreign DNS or Youtube/Netflix DNS"
+msgstr "请勿使用与外部DNS或Youtube/Netflix DNS相同的DNS服务器"
+
+msgid "Do not use the same DNS server as the Foreign DNS or Youtube/Netflix DNS"
+msgstr "请勿使用与外部DNS或Youtube/Netflix DNS相同的DNS服务器"
+
+msgid "Youtube IP AC"
+msgstr "Youtube访问控制"
+
+msgid "Netflix IP AC"
+msgstr "Netflix访问控制"
+
+msgid "Custom IP AC"
+msgstr "自定义访问控制"
+
+msgid "Telegram IP AC"
+msgstr "Telegram访问控制"
+
+msgid "Proxy IP by Youtube Server"
+msgstr "Youtube服务器的代理IP"
+
+msgid "Proxy IP by Netflix Server"
+msgstr "Netflix服务器的代理IP"
+
+msgid "Proxy IP by Custom Server"
+msgstr "自定义服务器的代理IP"
+
+msgid "Proxy IP by Telegram Server"
+msgstr "Telegram服务器代理IP"
+
+msgid "Telegram IP ranges has been proxied by default,No need to add"
+msgstr "默认情况下，电报IP范围已代理，无需添加"
 
 msgid "External Proxy Mode"
 msgstr "分流服务器（前置）代理"
@@ -135,7 +222,13 @@ msgid "Foreign DoH"
 msgstr "国外DoH"
 
 msgid "Custom DNS format is https://cloudflare-dns.com/dns-query or https://104.16.249.249/dns-query -http-host cloudflare-dns.com"
-msgstr "自定义DNS格式为 https://cloudflare-dns.com/dns-query 或 https://104.16.249.249/dns-query -http-host cloudflare-dns.com"
+msgstr "自定义DNS格式为https://cloudflare-dns.com/dns-query 或 https://104.16.249.249/dns-query -http-host cloudflare-dns.com"
+
+msgid "Custom format is 22,53,80,143,443,465,587,853,993,995,9418"
+msgstr "自定义DNS格式为22,53,80,143,443,465,587,853,993,995,9418"
+
+msgid "Custom DNS format is https://cloudflare-dns.com/dns-query or https://8.8.8.8/dns-query -http-host dns.google"
+msgstr "自定义DNS格式为https://cloudflare-dns.com/dns-query 或 https://8.8.8.8/dns-query -http-host dns.google"
 
 msgid "Google"
 msgstr "谷歌"
@@ -147,7 +240,7 @@ msgid "Foreign DNS"
 msgstr "国外DNS"
 
 msgid "Custom DNS format is 1.1.1.1:53,1.0.0.1 ,Port optional"
-msgstr "自定义DNS格式为 1.1.1.1:53,1.0.0.1 ,端口号可选"
+msgstr "自定义DNS格式为1.1.1.1:53,1.0.0.1 ,端口号可选"
 
 msgid "Domestic Resolve Dns Mode"
 msgstr "国内DNS解析方式"
@@ -162,7 +255,7 @@ msgid "Domestic DoH"
 msgstr "国内DoH"
 
 msgid "Custom DNS format is https://dns.alidns.com/dns-query or https://223.5.5.5/dns-query"
-msgstr "自定义DNS格式为 https://dns.alidns.com/dns-query 或 https://223.5.5.5/dns-query"
+msgstr "自定义DNS格式为https://dns.alidns.com/dns-query 或 https://223.5.5.5/dns-query"
 
 msgid "Ali"
 msgstr "阿里"
@@ -217,6 +310,9 @@ msgstr "丢弃命中关键词的节点"
 
 msgid "Keep Mode"
 msgstr "保留命中关键词的节点"
+
+msgid "Update Subscribe Settings"
+msgstr "更新订阅设置"
 
 msgid "Update Subscribe List"
 msgstr "更新订阅URL列表"
@@ -283,6 +379,9 @@ msgstr "使用"
 
 msgid "Auto Switch"
 msgstr "故障转移"
+
+msgid "Edit bypass Server"
+msgstr "编辑服务器配置"
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"
@@ -352,6 +451,9 @@ msgstr "传输协议"
 
 msgid "allowInsecure"
 msgstr "允许不安全连接"
+
+msgid "Allowing insecure connection will not check the validity of the TLS certificate provided by the remote host"
+msgstr "允许不安全连接不会检查远程主机提供的TLS证书的有效性"
 
 msgid "If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates."
 msgstr "是否允许不安全连接。当选择时，将不会检查远端主机所提供的 TLS 证书的有效性。"
@@ -452,6 +554,21 @@ msgstr "域名列表"
 msgid "Direct Domain List"
 msgstr "不走代理的域名"
 
+msgid "Main Server Domain List"
+msgstr "主服务器分流域名"
+
+msgid "Youtube Domain List"
+msgstr "Youtube分流域名"
+
+msgid " Custom Domain List"
+msgstr "自定义分流域名"
+
+msgid "Preload Domain List(GFW Only)"
+msgstr "预加载域列表（仅限GFW）"
+
+msgid "After modify the subscribe URL and settings,click this button first"
+msgstr "修改订阅URL和设置后，单击此按钮"
+
 msgid "Proxy Domain List"
 msgstr "强制走代理的域名"
 
@@ -491,8 +608,26 @@ msgstr "切换检查超时时间（秒）"
 msgid "Check Try Count"
 msgstr "切换检查重试次数"
 
+msgid "Edit bypass Server"
+msgstr "编辑服务器"
+
 msgid "Global SOCKS5 Proxy Server"
-msgstr "SOCKS5 代理服务端（全局）"
+msgstr "SOCKS5代理服务端（全局）"
+
+msgid "Reverse"
+msgstr "逆序"
+
+msgid "Baidu Delay"
+msgstr "百度延时"
+
+msgid "Google Delay"
+msgstr "谷歌延时"
+
+msgid "Github Delay"
+msgstr "Github延时"
+
+msgid "Youtube Delay"
+msgstr "Youtube延时"
 
 msgid "Server"
 msgstr "服务器"
@@ -579,7 +714,7 @@ msgid "Baidu Connectivity"
 msgstr "【百度】连通性检查"
 
 msgid "GFW List Data"
-msgstr "【GFW列表】数据库"
+msgstr "GFW列表数据"
 
 msgid "Refresh Data"
 msgstr "更新数据库"
@@ -603,10 +738,10 @@ msgid "Total Records:"
 msgstr "新的总纪录数："
 
 msgid "China IPv4 Data"
-msgstr "【国内IPv4段】数据库"
+msgstr "国内IPv4数据"
 
 msgid "China IPv6 Data"
-msgstr "【国内IPv6段】数据库"
+msgstr "国内IPv6数据"
 
 msgid "Check Server Port"
 msgstr "【服务器端口】检查"
