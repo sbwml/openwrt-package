@@ -25,11 +25,11 @@ msgstr "启用"
 msgid "Disable"
 msgstr "停用"
 
-
 msgid "Game Mode"
 msgstr "游戏模式"
-msgid "Game Mode UDP Server"
-msgstr "游戏模式UDP中继服务器"
+
+msgid "UDP Server"
+msgstr "UDP服务器"
 
 msgid "Same as Global Server"
 msgstr "与全局服务器相同"
@@ -287,8 +287,11 @@ msgstr "服务器节点订阅与管理"
 msgid "Auto Update"
 msgstr "自动更新"
 
-msgid "Auto Update Server subscription,GFW list and CHN route"
-msgstr "自动更新服务器订阅、GFW列表和 CHN路由表"
+msgid "Auto Update CHN route and GFW list"
+msgstr "自动更新GFW列表和 CHN路由表"
+
+msgid "Auto Update Server subscription"
+msgstr "自动更新服务器订阅"
 
 msgid "Update time (every day)"
 msgstr "更新时间 (每天)"

@@ -27,7 +27,7 @@ o=s:option(ListValue,"global_server",translate("Main Server"))
 o:value("",translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
-o=s:option(ListValue,"udp_relay_server",translate("Game Mode UDP Server"))
+o=s:option(ListValue,"udp_relay_server",translate("UDP Server"))
 o:value("",translate("Disable"))
 o:value("same",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end

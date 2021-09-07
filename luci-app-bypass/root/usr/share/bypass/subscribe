@@ -442,7 +442,7 @@ local function parse_link()
 					if result then
 						if not result.server or not result.server_port or result.alias=="NULL" or check_filer(result) or result.server:match("[^0-9a-zA-Z%-%.%s]") then
 							num=num+1
-							log('丢弃无效节点: '..result.type..' 节点,'..result.alias)
+							log('丢弃无效节点: '..result.type..' 节点: '..result.alias)
 						else
 							result.grouphashkey=groupHash
 							tinsert(nodeResult[index],result)
@@ -467,7 +467,7 @@ local execute=function()
 		log("更新失败，没有可用的节点信息")
 		if proxy=='0' then
 			SYS.init.start(name)
-			log('订阅失败,恢复服务')
+			log('订阅失败，恢复服务')
 		end
 		return
 	end
@@ -530,6 +530,10 @@ local execute=function()
 end
 
 if subscribe_url and #subscribe_url > 0 then
+	if SYS.call('curl -so /dev/null -m 5 www.baidu.com')~=0 then
+		log("网络不通，停止更新订阅")
+		return
+	end
 	xpcall(execute,function(e)
 		log(e)
 		log(debug.traceback())

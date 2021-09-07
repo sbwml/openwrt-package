@@ -259,6 +259,7 @@ word-spacing:-.43em
 .pure-u-5-8
 {
     display: flex;
+	align-items:center;
 }
 
 .block h4
@@ -365,7 +366,7 @@ word-spacing:-.43em
           <div class="img-con"> <img src="/luci-static/bypass/img/t3dns.svg"> </div>
         </div>
         <div class="pure-u-3-5">
-          <h4 id="chinadns_status">CHINA DNS<br />
+          <h4 id="chinadns_status">ChinaDNS<br />
             <span class="red">
             <%:Not Running%>
             </span></h4>
@@ -378,7 +379,7 @@ word-spacing:-.43em
           <div class="img-con"> <img src="/luci-static/bypass/img/t3smartdns.svg"> </div>
         </div>
         <div class="pure-u-3-5">
-          <h4 id="smartdns_status">SAMRT DNS<br />
+          <h4 id="smartdns_status">SmartDNS<br />
             <span class="red">
             <%:Not Running%>
             </span></h4>
@@ -511,14 +512,14 @@ word-spacing:-.43em
                     $("#udp_status").html(GAME_MODE + '<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
                 if (data.smartdns) {
-                    $("#smartdns_status").html('SAMRT DNS<br><span class="green">' + RUNNING + '</span>');
+                    $("#smartdns_status").html('SmartDNS<br><span class="green">' + RUNNING + '</span>');
                 } else {
-                    $("#smartdns_status").html('SAMRT DNS<br><span class="red">' + NOT_RUNNING + '</span>');
+                    $("#smartdns_status").html('SmartDNS<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
                 if (data.chinadns) {
-                    $("#chinadns_status").html('CHINA DNS<br><span class="green">' + RUNNING + '</span>');
+                    $("#chinadns_status").html('ChinaDNS<br><span class="green">' + RUNNING + '</span>');
                 } else {
-                    $("#chinadns_status").html('CHINA DNS<br><span class="red">' + NOT_RUNNING + '</span>');
+                    $("#chinadns_status").html('ChinaDNS<br><span class="red">' + NOT_RUNNING + '</span>');
                 }
             }
         }

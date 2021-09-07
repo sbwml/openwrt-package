@@ -8,6 +8,7 @@ local socks_port=arg[4] or "0"
 local ip_addr=arg[5]
 local server=ucursor:get_all("bypass",server_section)
 local tls_host=server.tls_host or server.http_host or server.ws_host or server.h2_host or server.server
+if server.tls=='1' then server.security="none" end
 local Xray={
 log={
 loglevel="warning"

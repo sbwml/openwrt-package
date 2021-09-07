@@ -95,7 +95,7 @@ while :;do
 	fi
 #server
 	if [ $server_count -gt 0 ] && [ $(ps -w | grep bypass-server | grep -v grep | wc -l) -lt $server_count ];then
-		log "By Montior  : Bywall Server Error. Restart!"
+		log "By Montior  : Bypass Server Error. Restart!"
 		res
 	fi
 done

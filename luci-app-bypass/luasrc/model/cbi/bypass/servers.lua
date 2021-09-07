@@ -13,8 +13,10 @@ s=m:section(TypedSection,"server_subscribe")
 s.anonymous=true
 
 o=s:option(Flag,"auto_update",translate("Auto Update"))
-o.rmempty=false
-o.description=translate("Auto Update Server subscription,GFW list and CHN route")
+o.description=translate("Auto Update CHN route and GFW list")
+
+o=s:option(Flag,"auto_update_s",translate("Auto Update"))
+o.description=translate("Auto Update Server subscription")
 
 o=s:option(ListValue,"auto_update_time",translate("Update time (every day)"))
 for t=0,23 do
@@ -35,12 +37,9 @@ o.rmempty=true
 o.description=translate("Filter Words splited by /")
 
 o=s:option(Flag,"switch",translate("Subscribe Default Auto-Switch"))
-o.rmempty=false
 o.description=translate("Subscribe new add server default Auto-Switch on")
-o.default=1
 
 o=s:option(Flag,"proxy",translate("Through proxy update"))
-o.rmempty=false
 o.description=translate("Through proxy update list,Not Recommended")
 
 o=s:option(Button,"update_Sub",translate("Update Subscribe Settings"))
@@ -122,9 +121,8 @@ o.write=function(self,section)
 end
 
 o=s:option(Flag,"switch_enable",translate("Auto Switch"))
-o.rmempty=false
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or 1
+	return Value.cfgvalue(...) or 0
 end
 
 m:append(Template("bypass/server_list"))
