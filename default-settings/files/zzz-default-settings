@@ -25,7 +25,6 @@ uci set dhcp.lan.ra_management='1'
 uci set dhcp.lan.ra_default='1'
 uci set dhcp.lan.force='1'
 uci commit dhcp
-#uci set network.@globals[0].ula_prefix=''
 uci set network.@wan[0].mtu=1460
 uci set network.@wan[0].metric='40'
 uci commit network
@@ -34,6 +33,8 @@ uci set upnpd.@upnpd[0].igdv1='1'
 uci commit upnpd
 uci set rpcd.@rpcd[0].socket='/var/run/ubus/ubus.sock'
 uci commit rpcd
+uci set dockerd.@globals[0].auto_start='0'
+uci commit dockerd
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 
@@ -58,7 +59,6 @@ ln -sf /sbin/ip /usr/bin/ip
 
 sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
 
-# sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
 
 sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
@@ -83,15 +83,6 @@ echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
 echo 'hsts=0' > /root/.wgetrc
 
-/etc/init.d/php7-fastcgi disable 2>/dev/null
-/etc/init.d/php7-fpm disable 2>/dev/null
-/etc/init.d/softethervpnbridge disable 2>/dev/null
-/etc/init.d/softethervpnserver disable 2>/dev/null
-/etc/init.d/softethervpnclient disable 2>/dev/null
-/etc/init.d/haproxy disable 2>/dev/null
-/etc/init.d/kcptun disable 2>/dev/null
-for p in `ls -l /etc/init.d | awk '/--/{print $NF}'`; do chmod +x /etc/init.d/$p; done
-for p in `ls -l /usr/bin | awk '/--/{print $NF}'`; do chmod +x /usr/bin$p; done
 rm -rf /tmp/luci-*
 
 exit 0
