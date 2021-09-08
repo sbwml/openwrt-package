@@ -83,6 +83,7 @@ echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
 echo 'hsts=0' > /root/.wgetrc
 
+# DOCKER_CONFIG="[ -x /etc/init.d/dockerd ] && /etc/init.d/dockerd restart"
 rm -rf /tmp/luci-*
 
 exit 0
