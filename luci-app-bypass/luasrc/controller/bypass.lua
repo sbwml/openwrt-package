@@ -22,11 +22,8 @@ function index()
 	entry({"admin","services","bypass","log"},form("bypass/log"),_("Log"),8).leaf=true
 	entry({"admin", "services", "bypass", "run"}, call("act_status"))
 	entry({"admin", "services", "bypass", "checknet"}, call("check_net"))
-	entry({"admin","services","bypass","check"},call("check"))
-	entry({"admin","services","bypass","ip"},call("ip"))
 	entry({"admin","services","bypass","refresh"},call("refresh"))
 	entry({"admin","services","bypass","subscribe"},call("subscribe"))
-	entry({"admin","services","bypass","checksrv"},call("checksrv"))
 	entry({"admin","services","bypass","ping"},call("ping"))
 	entry({"admin","services","bypass","getlog"},call("getlog"))
 	entry({"admin","services","bypass","dellog"},call("dellog"))
@@ -36,7 +33,7 @@ function act_status()
     local e = {}
     e.tcp = CALL('busybox ps -w | grep bypass-tcp | grep -v grep  >/dev/null ') == 0
     e.udp = CALL('busybox ps -w | grep bypass-udp | grep -v grep  >/dev/null') == 0
-    e.smartdns = CALL("pidof smartdns >/dev/null")==0
+    e.smartdns = CALL("pidof smartdns-le >/dev/null")==0
 
     e.chinadns=CALL("pidof chinadns-ng >/dev/null")==0
     http.prepare_content('application/json')
@@ -60,19 +57,6 @@ function check_net()
 	http.write_json({ret=r})
 end
 
-
-
-
-function ip()
-	local r
-	if http.formvalue("set")=="0" then
-		r=EXEC("cat /tmp/etc/bypass.include | grep -Eo '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | sed -n 1p")
-	else
-		r=EXEC("curl -Lsm 5 https://jsonp-ip.appspot.com | grep -Eo '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}'")
-	end
-	http.prepare_content("application/json")
-	http.write_json({ret=r})
-end
 
 function refresh()
 	local set=http.formvalue("set")
@@ -139,54 +123,37 @@ function subscribe()
 	http.write_json({ret=1})
 end
 
-function checksrv()
-	local r="<br/>"
-	local s,n
-	luci.model.uci.cursor():foreach("bypass","servers",function(s)
-		if s.alias then
-			n=s.alias
-		elseif s.server and s.server_port then
-			n="%s:%s"%{s.server,s.server_port}
-		end
-		local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
-		local ip=EXEC("echo "..s.server.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || \\\
-		nslookup "..s.server.." 127.0.0.1#"..dp.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
-		ip=EXEC("echo -n "..ip)
-		local iret=CALL("ipset add over_wan_ac "..ip.." 2>/dev/null")
-		local t=EXEC(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}'",s.server_port,ip))
-		if t~='' then
-			if tonumber(t)<100 then
-				col='#2dce89'
-			elseif tonumber(t)<200 then
-				col='#fb9a05'
-			else
-				col='#fb6340'
-			end
-			r=r..'<font color="'..col..'">['..string.upper(s.type)..'] ['..n..'] '..t..' ms</font><br/>'
-		else
-			r=r..'<font color="red">['..string.upper(s.type)..'] ['..n..'] ERROR</font><br/>'
-		end
-		if iret==0 then CALL("ipset del over_wan_ac "..ip) end
-	end)
-	http.prepare_content("application/json")
-	http.write_json({ret=r})
-end
-
 function ping()
-	local e={}
-	local domain=http.formvalue("domain")
-	local port=http.formvalue("port")
-	local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
-	local ip=EXEC("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || \\\
-	nslookup "..domain.." 127.0.0.1#"..dp.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
-	ip=EXEC("echo -n "..ip)
-	local iret=CALL("ipset add over_wan_ac "..ip.." 2>/dev/null")
-	e.ping=EXEC(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}'",port,ip))
-	if (iret==0) then
-		CALL("ipset del over_wan_ac "..ip)
+	local e = {}
+	local domain = luci.http.formvalue("domain")
+	local port = luci.http.formvalue("port")
+	local transport = luci.http.formvalue("transport")
+	local wsPath = luci.http.formvalue("wsPath")
+	local tls = luci.http.formvalue("tls")
+	e.index = luci.http.formvalue("index")
+	local iret = luci.sys.call("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
+	if transport == "ws" then
+		local prefix = tls=='1' and "https://" or "http://"
+		local address = prefix..domain..':'..port..wsPath
+		local result = luci.sys.exec("curl --http1.1 -m 2 -ksN -o /dev/null -w 'time_connect=%{time_connect}\nhttp_code=%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==' -H 'Sec-WebSocket-Version: 13' "..address)
+		e.socket = string.match(result,"http_code=(%d+)")=="101"
+		e.ping = tonumber(string.match(result, "time_connect=(%d+.%d%d%d)"))*1000
+	else
+		local socket = nixio.socket("inet", "stream")
+		socket:setopt("socket", "rcvtimeo", 3)
+		socket:setopt("socket", "sndtimeo", 3)
+		e.socket = socket:connect(domain, port)
+		socket:close()
+		-- 	e.ping = luci.sys.exec("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'" % domain)
+		-- 	if (e.ping == "") then
+		e.ping = luci.sys.exec(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, domain))
+		-- 	end
 	end
-	http.prepare_content("application/json")
-	http.write_json(e)
+	if (iret == 0) then
+		luci.sys.call(" ipset del ss_spec_wan_ac " .. domain)
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(e)
 end
 
 function getlog()

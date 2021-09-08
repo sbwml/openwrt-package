@@ -105,12 +105,20 @@ function o.cfgvalue(...)
 end
 
 o=s:option(DummyValue,"server",translate("TCPing Latency"))
-o.template="bypass/server"
-o.width="10%"
+o.template="bypass/ping"
+o.width = "10%"
 
 o=s:option(DummyValue,"server_port",translate("Result"))
-o.template="bypass/port"
-o.width="10%"
+o.template="bypass/socket"
+o.width = "10%"
+o.render = function(self, section, scope)
+	self.transport = s:cfgvalue(section).transport
+	if self.transport == 'ws' then
+		self.ws_path = s:cfgvalue(section).ws_path
+		self.tls = s:cfgvalue(section).tls
+	end
+	DummyValue.render(self, section, scope)
+end
 
 o=s:option(Button,"apply_node",translate("Apply"))
 o.inputstyle="apply"

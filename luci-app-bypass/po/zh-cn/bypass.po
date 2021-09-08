@@ -715,7 +715,7 @@ msgid "Baidu Connectivity"
 msgstr "【百度】连通性检查"
 
 msgid "GFW List Data"
-msgstr "GFW列表"
+msgstr "GFW列表库"
 
 msgid "Refresh Data"
 msgstr "更新数据库"
@@ -733,16 +733,16 @@ msgid "Refresh Error!"
 msgstr "更新失败！"
 
 msgid "No new data!"
-msgstr "无需更新！"
+msgstr "已经最新！"
 
 msgid "Total Records:"
 msgstr "总数："
 
 msgid "China IPv4 List Data"
-msgstr "国内IPv4列表"
+msgstr "国内IPv4列表库"
 
 msgid "China IPv6 List Data"
-msgstr "国内IPv6列表"
+msgstr "国内IPv6列表库"
 
 msgid "Check Server Port"
 msgstr "【服务器端口】检查"
