@@ -37,7 +37,6 @@ msgstr "与全局服务器相同"
 msgid "Load Netflix IP Range"
 msgstr "加载Netflix IP范围"
 
-
 msgid "Youtube Server"
 msgstr "Youtube服务器"
 
@@ -46,7 +45,6 @@ msgstr "自定义服务器"
 
 msgid "Telegram Server"
 msgstr "Telegram服务器"
-
 
 msgid "Netflix Server"
 msgstr "Netflix服务器"
@@ -69,10 +67,8 @@ msgstr "自定义DNS服务器"
 msgid "Forward Youtube Proxy through Main Proxy"
 msgstr "通过主代理转发Youtube代理"
 
-
 msgid "Forward Custom Proxy through Main Proxy"
 msgstr "通过主代理转发自定义代理"
-
 
 msgid "Forward Telegram Proxy through Main Proxy"
 msgstr "通过主代理转发Telegram代理"
@@ -201,7 +197,6 @@ msgstr "预加载域名（仅限GFW模式，解决绕过重启或切换节点后
 
 msgid "Redirect LAN device DNS to router(Don’t disable if you don’t understand)"
 msgstr "将LAN设备DNS重定向到路由器（如果不理解，请不要禁用）"
-
 
 msgid "All Ports"
 msgstr "所有端口（默认）"
@@ -566,6 +561,9 @@ msgstr "Youtube分流域名"
 msgid " Custom Domain List"
 msgstr "自定义分流域名"
 
+msgid "Not valid domain name!"
+msgstr "无效域名"
+
 msgid "Preload Domain List(GFW Only)"
 msgstr "预加载域列表（仅限GFW）"
 
@@ -717,7 +715,7 @@ msgid "Baidu Connectivity"
 msgstr "【百度】连通性检查"
 
 msgid "GFW List Data"
-msgstr "GFW列表数据"
+msgstr "GFW列表"
 
 msgid "Refresh Data"
 msgstr "更新数据库"
@@ -729,22 +727,22 @@ msgid "Refresh..."
 msgstr "正在更新，请稍候.."
 
 msgid "Refresh OK!"
-msgstr "更新成功！"
+msgstr "已更新"
 
 msgid "Refresh Error!"
 msgstr "更新失败！"
 
 msgid "No new data!"
-msgstr "你已经是最新数据，无需更新！"
+msgstr "无需更新！"
 
 msgid "Total Records:"
-msgstr "新的总纪录数："
+msgstr "总数："
 
-msgid "China IPv4 Data"
-msgstr "国内IPv4数据"
+msgid "China IPv4 List Data"
+msgstr "国内IPv4列表"
 
-msgid "China IPv6 Data"
-msgstr "国内IPv6数据"
+msgid "China IPv6 List Data"
+msgstr "国内IPv6列表"
 
 msgid "Check Server Port"
 msgstr "【服务器端口】检查"
@@ -883,6 +881,9 @@ msgstr "节点检测"
 
 msgid "Check..."
 msgstr "检测中..."
+
+msgid "Clear Log"
+msgstr "清除日志"
 
 msgid "Clear"
 msgstr "清除"

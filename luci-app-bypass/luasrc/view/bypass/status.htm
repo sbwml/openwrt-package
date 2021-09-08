@@ -363,7 +363,7 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/bypass/img/t3dns.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/bypass/img/t3chinadns.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="chinadns_status">ChinaDNS<br />
@@ -376,7 +376,7 @@ word-spacing:-.43em
     <div class="pure-u-1-4">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/bypass/img/t3smartdns.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/bypass/img/t4smartdns.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="smartdns_status">SmartDNS<br />
@@ -406,11 +406,11 @@ word-spacing:-.43em
               <div class="pure-u-2-5">
 
 					<div class="img-con">
-						<img src="/luci-static/bypass/img/t5ipv4.svg">
+						<img src="/luci-static/bypass/img/t6ipv4.svg">
 					</div>
 				</div>
                 <div class="pure-u-3-5">
-					<h4 id="status_refresh1"><%:China IPv4 Data%><br/><span id="refresh1_status" class="green"><%=luci.sys.exec("cat /tmp/bypass/china.txt | wc -l")%><%:Records%></span></h4>
+					<h4 id="status_refresh1"><%:China IPv4 List Data%><br/><span id="refresh1_status" class="green"><%=luci.sys.exec("cat /tmp/bypass/china.txt | wc -l")%><%:Records%></span></h4>
 				</div>
 			</div>
 		</div>
@@ -419,11 +419,11 @@ word-spacing:-.43em
               <div class="pure-u-2-5">
 
 					<div class="img-con">
-						<img src="/luci-static/bypass/img/t5ipv6.svg">
+						<img src="/luci-static/bypass/img/t7ipv6.svg">
 					</div>
 				</div>
                 <div class="pure-u-3-5">
-					<h4 id="status_refresh2"><%:China IPv6 Data%><br/><span id="refresh2_status" class="green"><%=luci.sys.exec("cat /tmp/bypass/china_v6.txt | wc -l")%><%:Records%></span></h4>
+					<h4 id="status_refresh2"><%:China IPv6 List Data%><br/><span id="refresh2_status" class="green"><%=luci.sys.exec("cat /tmp/bypass/china_v6.txt | wc -l")%><%:Records%></span></h4>
 				</div>
 			</div>
 		</div>
@@ -432,28 +432,13 @@ word-spacing:-.43em
 	    <div class="pure-u-1-4 check" onclick="check_net('baidu')">
       <div class="block pure-g">
         <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/bypass/img/t7baidu.svg"> </div>
+          <div class="img-con"> <img src="/luci-static/bypass/img/t8baidu.svg"> </div>
         </div>
         <div class="pure-u-3-5">
           <h4 id="status_baidu">
             <%:Baidu Delay%>
             <br/>
             <span id="baidu_status" class="yellow">
-            <%:Touch Check%>
-            </span></h4>
-        </div>
-      </div>
-    </div>
-    <div class="pure-u-1-4 check"  onclick="check_net('github')">
-      <div class="block pure-g">
-        <div class="pure-u-2-5">
-          <div class="img-con"> <img src="/luci-static/bypass/img/t8github.svg"> </div>
-        </div>
-        <div class="pure-u-3-5">
-          <h4 id="status_github">
-            <%:Github Delay%>
-            <br/>
-            <span id="github_status" class="yellow">
             <%:Touch Check%>
             </span></h4>
         </div>
@@ -578,9 +563,11 @@ word-spacing:-.43em
 		}
 		
 setTimeout(function(){
+			refresh(0)
+			refresh(1)
+			refresh(2)
 			check_net('baidu')
 			check_net('google')
-			check_net('github')
 			check_net('youtube')
 		},500);
 //]]>
