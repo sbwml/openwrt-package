@@ -50,7 +50,6 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
 sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
 sed -i 's/\"services\"/\"control\"/g' /usr/lib/lua/luci/controller/samba4.lua
-sed -i 's/\"nas\"/\"control\"/g' /usr/lib/lua/luci/controller/cifsd.lua
 
 uci set vsftpd.@listen[0].enable4='0'
 uci commit vsftpd
