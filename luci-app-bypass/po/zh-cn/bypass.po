@@ -549,7 +549,7 @@ msgstr "全局代理的LAN IP"
 msgid "Game Mode Host List"
 msgstr "增强游戏模式客户端LAN IP"
 
-msgid " Custom Domain List"
+msgid " Custom Domain"
 msgstr "自定义域名分流"
 
 msgid "Domain List"
@@ -600,8 +600,8 @@ msgstr "高级设置"
 msgid "Server failsafe auto swith settings"
 msgstr "服务器节点故障故障转移设置"
 
-msgid "Global SOCKS5 Proxy Server"
-msgstr "SOCKS5代理服务端（全局）"
+msgid "Global SOCKS5 Server"
+msgstr "SOCKS5服务端（全局）"
 
 msgid "Enable Process Deamon"
 msgstr "启用进程自动守护"
@@ -711,9 +711,6 @@ msgstr "连接错误"
 msgid "Check Connect"
 msgstr "检查连通性"
 
-msgid "Baidu Connectivity"
-msgstr "【百度】连通性检查"
-
 msgid "GFW List Data"
 msgstr "GFW列表库"
 
@@ -732,7 +729,7 @@ msgstr "已更新"
 msgid "Refresh Error!"
 msgstr "更新失败！"
 
-msgid "No new data!"
+msgid "No New data!"
 msgstr "已经最新！"
 
 msgid "Total Records:"
@@ -869,12 +866,6 @@ msgstr "Socks5服务端"
 
 msgid "Running Status"
 msgstr "运行状态"
-
-msgid "Baidu Connection"
-msgstr "百度连接"
-
-msgid "Google Connection"
-msgstr "谷歌连接"
 
 msgid "Node Check"
 msgstr "节点检测"

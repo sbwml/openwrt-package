@@ -43,7 +43,7 @@ o.datatype="uinteger"
 o.default=3
 o:depends("enable_switch",1)
 
-s=m:section(TypedSection,"socks5_proxy",translate("Global Socks5 Proxy Server"))
+s=m:section(TypedSection,"socks5_proxy",translate("Global SOCKS5 Server"))
 s.anonymous=true
 
 o=s:option(ListValue,"server",translate("Server"))

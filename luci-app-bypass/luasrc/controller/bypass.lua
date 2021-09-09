@@ -131,7 +131,7 @@ function ping()
 	local wsPath = luci.http.formvalue("wsPath")
 	local tls = luci.http.formvalue("tls")
 	e.index = luci.http.formvalue("index")
-	local iret = luci.sys.call("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
+	local iret = luci.sys.call("ipset add over_wan_ac " .. domain .. " 2>/dev/null")
 	if transport == "ws" then
 		local prefix = tls=='1' and "https://" or "http://"
 		local address = prefix..domain..':'..port..wsPath
@@ -150,7 +150,7 @@ function ping()
 		-- 	end
 	end
 	if (iret == 0) then
-		luci.sys.call(" ipset del ss_spec_wan_ac " .. domain)
+		luci.sys.call(" ipset del over_wan_ac " .. domain)
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)

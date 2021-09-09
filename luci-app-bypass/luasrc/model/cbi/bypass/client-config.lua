@@ -97,7 +97,7 @@ local flows={
 "xtls-rprx-origin-udp443"
 }
 
-m=Map(ov,translate("Edit bypass Server"))
+m=Map(ov,translate("Edit Server"))
 m.redirect=luci.dispatcher.build_url("admin/services/bypass/servers")
 if m.uci:get(ov,sid)~="servers" then
 	luci.http.redirect(m.redirect)
