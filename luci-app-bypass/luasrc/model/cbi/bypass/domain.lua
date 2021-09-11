@@ -93,9 +93,9 @@ o.validate=function(self,value)
     return value
 end
 
-s:tab("cu",translate("Custom Domain"))
+s:tab("cu",translate("Custom list domain"))
 
-o=s:taboption("cu",TextValue,"cu_f","",translate("Custom Domain"))
+o=s:taboption("cu",TextValue,"cu_f","",translate("Custom list domain"))
 o.rows=15
 o.wrap="off"
 o.cfgvalue=function(self,section) return fs.readfile(cu_f) or "" end
