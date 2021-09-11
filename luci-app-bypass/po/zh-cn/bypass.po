@@ -87,6 +87,7 @@ msgstr "不要使用与外部DNS或Youtube DNS相同的DNS服务器"
 
 msgid "Do not use the same DNS server as the Foreign DNS or Youtube DNS"
 msgstr "不要使用与外部DNS或Youtube DNS相同的DNS服务器"
+
 msgid "Do not use the same DNS server as the Foreign DNS or Youtube/Netflix DNS"
 msgstr "请勿使用与外部DNS或Youtube/Netflix DNS相同的DNS服务器"
 
@@ -549,7 +550,7 @@ msgstr "全局代理的LAN IP"
 msgid "Game Mode Host List"
 msgstr "增强游戏模式客户端LAN IP"
 
-msgid " Custom Domain"
+msgid " Custom list domain"
 msgstr "自定义域名分流"
 
 msgid "Domain List"
