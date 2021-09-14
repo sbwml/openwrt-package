@@ -118,7 +118,7 @@ function refresh()
 end
 
 function subscribe()
-	CALL("/usr/share/bypass/subscribe")
+	CALL("/usr/bin/lua /usr/share/bypass/subscribe >>/tmp/bypass.log")
 	http.prepare_content("application/json")
 	http.write_json({ret=1})
 end

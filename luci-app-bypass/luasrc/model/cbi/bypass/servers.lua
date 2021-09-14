@@ -129,8 +129,9 @@ o.write=function(self,section)
 end
 
 o=s:option(Flag,"switch_enable",translate("Auto Switch"))
+o.rmempty = false
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or 0
+	return Value.cfgvalue(...) or 1
 end
 
 m:append(Template("bypass/server_list"))
