@@ -550,8 +550,8 @@ msgstr "全局代理的LAN IP"
 msgid "Game Mode Host List"
 msgstr "增强游戏模式客户端LAN IP"
 
-msgid " Custom list domain"
-msgstr "自定义域名分流"
+msgid "Manual Domain list"
+msgstr "指定域名分流"
 
 msgid "Domain List"
 msgstr "域名列表"
