@@ -2,7 +2,7 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "SSRPRO"
-msgstr "SSR Plus+"
+msgstr "ShadowSocksR Plus++"
 
 msgid "Client"
 msgstr "客户端"
