@@ -9,10 +9,10 @@ uci commit system
 uci set uhttpd.main.rfc1918_filter=0
 uci set uhttpd.main.redirect_https=0
 uci commit uhttpd
-uci set turboacc.config.sfe_flow='0'
-uci set turboacc.config.sw_flow='0'
-uci set turboacc.config.hw_flow='0'
-uci set turboacc.config.bbr_cca='0'
+uci set turboacc.@config[0].sfe_flow='0'
+uci set turboacc.@config[0].sw_flow='0'
+uci set turboacc.@config[0].hw_flow='0'
+uci set turboacc.@config[0].bbr_cca='0'
 uci commit turboacc
 uci set fstab.@global[0].anon_mount=1
 uci commit fstab
