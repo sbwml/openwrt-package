@@ -719,7 +719,7 @@ msgid "Refresh Data"
 msgstr "更新数据库"
 
 msgid "Records"
-msgstr "条记录"
+msgstr "条"
 
 msgid "Refresh..."
 msgstr "正在更新，请稍候.."
@@ -733,7 +733,7 @@ msgstr "更新失败！"
 msgid "No New data!"
 msgstr "已经最新！"
 
-msgid "Total Records:"
+msgid "Total Record:"
 msgstr "总数："
 
 msgid "China IPv4 List Data"

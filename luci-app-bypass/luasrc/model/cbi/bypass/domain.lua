@@ -93,6 +93,25 @@ o.validate=function(self,value)
     return value
 end
 
+s:tab("cu",translate("Manual Domain list"))
+
+o=s:taboption("cu",TextValue,"cu_f","",translate("Manual Domain list"))
+o.rows=15
+o.wrap="off"
+o.cfgvalue=function(self,section) return fs.readfile(cu_f) or "" end
+o.write=function(self,section,value) fs.writefile(cu_f,value:gsub("\r\n","\n")) end
+o.remove=function(self,section,value) fs.writefile(cu_f,"") end
+o.validate=function(self,value)
+    local hosts={}
+    string.gsub(value,'[^'.."\r\n"..']+',function(w) table.insert(hosts,w) end)
+    for index,host in ipairs(hosts) do
+        if not datatypes.hostname(host) then
+            return nil,host.." "..translate("Not valid domain name!")
+        end
+    end
+    return value
+end
+
 s:tab("ov",translate("Oversea Domain List"))
 
 o=s:taboption("ov",TextValue,"ov_f","",translate("Oversea Domain List"))
@@ -130,25 +149,5 @@ o.validate=function(self,value)
     end
     return value
 end
-
-s:tab("cu",translate("Manual Domain list"))
-
-o=s:taboption("cu",TextValue,"cu_f","",translate("Manual Domain list"))
-o.rows=15
-o.wrap="off"
-o.cfgvalue=function(self,section) return fs.readfile(cu_f) or "" end
-o.write=function(self,section,value) fs.writefile(cu_f,value:gsub("\r\n","\n")) end
-o.remove=function(self,section,value) fs.writefile(cu_f,"") end
-o.validate=function(self,value)
-    local hosts={}
-    string.gsub(value,'[^'.."\r\n"..']+',function(w) table.insert(hosts,w) end)
-    for index,host in ipairs(hosts) do
-        if not datatypes.hostname(host) then
-            return nil,host.." "..translate("Not valid domain name!")
-        end
-    end
-    return value
-end
-
 
 return m
