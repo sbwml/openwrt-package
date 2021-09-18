@@ -118,7 +118,7 @@ function refresh()
 end
 
 function subscribe()
-	CALL("/usr/share/bypass/subscribe")
+	luci.sys.call("/usr/share/bypass/subscribe >> /tmp/bypass.log 2>&1")
 	http.prepare_content("application/json")
 	http.write_json({ret=1})
 end
