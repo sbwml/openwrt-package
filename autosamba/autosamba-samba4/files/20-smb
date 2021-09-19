@@ -40,12 +40,8 @@ smb_handle() {
 	fi
 }
 
-chk_en() {
-	config_get_bool autoshare $1 autoshare 1
-	[ $autoshare -eq 0 ] && exit
-}
+
 config_load samba4
-config_foreach chk_en samba
 autoshare=`uci get samba4.@samba[0].autoshare`
 [ $autoshare -eq 0 ] && exit
 
@@ -66,6 +62,7 @@ case "$ACTION" in
 
 	wait_for_init
 
+	homes=`uci get samba4.@samba[0].homes`
 	cat /proc/mounts | while read j
 	do
 		str=${j%% *}
@@ -76,8 +73,7 @@ case "$ACTION" in
 			config_foreach smb_handle sambashare $target
 			name=${target#*/mnt/}
 			name=$(echo $name | sed -e "s/^\///")
-			homes=`uci get samba4.@samba[0].homes`
-			[  "$target" = "/boot" ] && [ "$homes" -eq 0 ] && global=1
+			[  "$target" = "/boot" ] && [ $homes -eq 0 ] && global=1
 			if [ $global -eq 0 ] ;then
 				echo -e "\n\nconfig sambashare" >> $config_file
 				echo -e "\toption auto '1'" >> $config_file
@@ -95,7 +91,6 @@ case "$ACTION" in
 			fi
 		fi
 	done
-	homes=`uci get samba4.@samba[0].homes`
 	if [ $homes -eq 0 ]; then
 		sum=$(grep -c 'config sambashare' /etc/config/samba4)
 		for i in $(seq 0 $((sum - 1))); do
@@ -121,7 +116,7 @@ case "$ACTION" in
 
 			[ "$dev" = "$device" ] && {
 				auto=`uci get samba4.@sambashare[$i].auto`
-				[ $auto -eq 1 ] && {
+				[ $auto = "1" ] && {
 					mount_dir=`uci get samba4.@sambashare[$i].name`
 					uci delete samba4.@sambashare[$i]
 					uci commit
