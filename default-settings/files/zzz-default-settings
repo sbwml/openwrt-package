@@ -83,4 +83,10 @@ echo 'hsts=0' > /root/.wgetrc
 rm -rf /tmp/luci-modulecache/
 rm -f /tmp/luci-indexcache
 
+# /etc/init.d/minidlna enable
+# /etc/init.d/minidlna stop
+/etc/init.d/turboacc restart
+/etc/init.d/samba4 restart
+/etc/init.d/dockerd stop
+# /etc/init.d/wsdd2 stop
 exit 0
