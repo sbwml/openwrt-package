@@ -10,6 +10,7 @@ s:tab("template", translate("Edit Template"))
 
 --o=s:taboption("general",NetworkSelect,'interface', translate('Interface'),translate('Listen only on the given interface or, if unspecified, on lan'))
 
+
 o=s:taboption("general", Value, "workgroup", translate("Workgroup"))
 o.placeholder = 'WORKGROUP'
 
@@ -63,13 +64,13 @@ end
 
 br = s:taboption("general", Flag, "homes", translate("Share home-directories"), translate("Allow system users to reach their home directories via"))
 br.rmempty = false
-br.enabled = "yes"
-br.disabled = "no"
 br.default = "yes"
+
+
 a = s:taboption("general", Flag, "autoshare", translate("Auto Share"),
         translate("Auto share local disk which connected"))
 a.rmempty = false
-a.default = "no"
+a.default = "yes"
 
 
 s = m:section(TypedSection, "sambashare", translate("Shared Directories")

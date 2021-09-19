@@ -1,0 +1,5 @@
+#!/bin/sh
+[ -f /usr/share/samba4/samba.init ] && mv -f /usr/share/samba4/samba.init /etc/init.d/samba4
+
+rm -rf /tmp/luci-modulecache /tmp/luci-indexcache*
+exit 0
